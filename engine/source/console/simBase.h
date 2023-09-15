@@ -538,6 +538,9 @@ class SimObject: public ConsoleObject
    /// @see inspectPreApply
    virtual void inspectPostApply();
 
+   virtual void onVideoKill() {};
+   virtual void onVideoResurrect() {};
+
    /// Called when a SimObject is deleted.
    ///
    /// When you are on the notification list for another object
@@ -549,6 +552,8 @@ class SimObject: public ConsoleObject
 
    /// Called when the editor is deactivated.
    virtual void onEditorDisable(){};
+
+   virtual void getEditorClassName(char* write);
 
    /// @}
    

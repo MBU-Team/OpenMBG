@@ -44,6 +44,10 @@ class MaterialPropertyMap : public SimObject
 
       S32               sound;
       ColorF            puffColor[2];
+
+      F32 friction;
+      F32 restitution;
+      F32 force;
    };
 
   public:

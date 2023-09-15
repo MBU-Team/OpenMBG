@@ -659,6 +659,15 @@ U32 InteriorInstance::getPointZone(const Point3F& p)
    return (zone-1) + mZoneRangeStart;
 }
 
+MaterialPropertyMap::MapEntry* InteriorInstance::getMaterialProperty(U32 a)
+{
+    MaterialPropertyMap* m = static_cast<MaterialPropertyMap*>(Sim::findObject("MaterialPropertyMap"));
+    if (!mInteriorRes.isNull())
+        return (MaterialPropertyMap::MapEntry*)m->getMapEntry((*mInteriorRes).getDetailLevel(0)->mMaterialList->mMaterialNames[a]);
+    else
+        return NULL;
+}
+
 // does a hack check to determine how much a point is 'inside'.. should have
 // portals prebuilt with the transfer energy to each other portal in the zone
 // from the neighboring zone.. these values can be used to determine the factor 

@@ -157,6 +157,14 @@ void GameBase::inspectPostApply()
    setMaskBits(ExtendedInfoMask);
 }
 
+void GameBase::getEditorClassName(char* write)
+{
+    if (mDataBlock)
+        dStrcpy(write, mDataBlock->className);
+    else
+        dStrcpy(write, getClassName());
+}
+
 //----------------------------------------------------------------------------
 void GameBase::processTick(const Move*)
 {

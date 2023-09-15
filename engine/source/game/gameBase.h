@@ -182,6 +182,7 @@ class GameBase : public SceneObject
    bool onAdd();
    void onRemove();
    void inspectPostApply();
+   void getEditorClassName(char* write);
    static void initPersistFields();
    static void consoleInit();
    /// @}
@@ -273,10 +274,13 @@ class GameBase : public SceneObject
    ///
    /// @param   dt   Time since last advance call
    virtual void advanceTime(F32 dt);
+
+   virtual void advancePhysics(const Move* move, U32 dt) {};
    /// @}
 
    /// Returns the velocity of this object.
    virtual Point3F getVelocity() const;
+   virtual void getForce(Point3F& pos, Point3F* outforce) {};
 
    /// @name Network
    /// @see NetObject, NetConnection

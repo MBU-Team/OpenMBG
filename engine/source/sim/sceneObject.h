@@ -30,6 +30,7 @@
 #ifndef _LIGHTMANAGER_H_
 #include "sceneGraph/lightManager.h"
 #endif
+#include <dgl/materialPropertyMap.h>
 
 //-------------------------------------- Forward declarations...
 class SceneObject;
@@ -437,6 +438,27 @@ class SceneObject : public NetObject, public Container::Link
    /// @param   p   Point to test.
    virtual U32  getPointZone(const Point3F& p);
    
+   virtual void renderShadowVolumes(SceneState* state) {};
+   
+   /// Called when the object is supposed to render itself.
+   ///
+   /// @param   state   Current rendering state.
+   ///                  @see SceneState
+   /// @param   image   Image associated with this object to render.
+   ///                  @see SceneRenderImage
+   virtual void renderObject(SceneState* state, SceneRenderImage* image);
+
+   /// Called when the SceneGraph is ready for the registration of RenderImages.
+   ///
+   /// @see SceneState
+   ///
+   /// @param   state               SceneState
+   /// @param   stateKey            State key of the current SceneState
+   /// @param   startZone           Base zone index
+   /// @param   modifyBaseZoneState If true, the object needs to modify the zone state.
+   virtual bool prepRenderImage(SceneState* state, const U32 stateKey, const U32 startZone,
+       const bool modifyBaseZoneState = false);
+   
    /// This is called on a zone managing object to scope all the zones managed.
    ///
    /// @param   rootPosition   Camera position
@@ -446,25 +468,6 @@ class SceneObject : public NetObject, public Container::Link
                             const F32             rootDistance,
                             bool*                 zoneScopeState);
    /// @}
-
-   /// Called when the object is supposed to render itself.
-   ///
-   /// @param   state   Current rendering state.
-   ///                  @see SceneState
-   /// @param   image   Image associated with this object to render.
-   ///                  @see SceneRenderImage
-   virtual void renderObject(SceneState *state, SceneRenderImage *image);
-   
-   /// Called when the SceneGraph is ready for the registration of RenderImages.
-   ///
-   /// @see SceneState
-   ///
-   /// @param   state               SceneState
-   /// @param   stateKey            State key of the current SceneState
-   /// @param   startZone           Base zone index
-   /// @param   modifyBaseZoneState If true, the object needs to modify the zone state.
-   virtual bool prepRenderImage(SceneState *state, const U32 stateKey, const U32 startZone,
-                                const bool modifyBaseZoneState = false);
    
    /// Adds object to the client or server container depending on the object
    void addToScene();
@@ -479,7 +482,14 @@ class SceneObject : public NetObject, public Container::Link
    void onRemove();
    
    // Overrideables
+   public:
+   /// Returns the material property struct for material index
+   ///
+   /// @param   materialIndex  Index of material to use.
+   virtual MaterialPropertyMap::MapEntry* getMaterialProperty(U32);
+   
   protected:
+
    /// Called when this is added to the SceneGraph.
    ///
    /// @param   graph   SceneGraph this is getting added to

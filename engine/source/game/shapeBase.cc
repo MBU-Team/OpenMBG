@@ -2720,7 +2720,7 @@ void ShapeBase::buildConvex(const Box3F& box, Convex* convex)
 
 //----------------------------------------------------------------------------
 
-void ShapeBase::queueCollision(ShapeBase* obj, const VectorF& vec)
+void ShapeBase::queueCollision(ShapeBase* obj, const VectorF& vec, U32 material)
 {
    // Add object to list of collisions.
    SimTime time = Sim::getCurrentTime();
@@ -2728,6 +2728,9 @@ void ShapeBase::queueCollision(ShapeBase* obj, const VectorF& vec)
 
    CollisionTimeout** adr = &mTimeoutList;
    CollisionTimeout* ptr = mTimeoutList;
+
+   const MaterialPropertyMap::MapEntry* mat = obj->getMaterialProperty(material);
+
    while (ptr) {
       if (ptr->objectNumber == num) {
          if (ptr->expireTime < time) {
@@ -2768,6 +2771,7 @@ void ShapeBase::queueCollision(ShapeBase* obj, const VectorF& vec)
    ptr->vector = vec;
    ptr->expireTime = time + CollisionTimeoutValue;
    ptr->next = mTimeoutList;
+   ptr->material = mat;
 
    mTimeoutList = ptr;
 }
@@ -2783,14 +2787,14 @@ void ShapeBase::notifyCollision()
       {
          SimObjectPtr<ShapeBase> safePtr(ptr->object);
          SimObjectPtr<ShapeBase> safeThis(this);
-         onCollision(ptr->object,ptr->vector);
+         onCollision(ptr->object,ptr->vector, ptr->material);
          ptr->object = 0;
 
          if(!bool(safeThis))
             return;
 
          if(bool(safePtr))
-            safePtr->onCollision(this,ptr->vector);
+            safePtr->onCollision(this,ptr->vector, ptr->material);
 
          if(!bool(safeThis))
             return;
@@ -2798,15 +2802,17 @@ void ShapeBase::notifyCollision()
    }
 }
 
-void ShapeBase::onCollision(ShapeBase* object,VectorF vec)
+void ShapeBase::onCollision(ShapeBase* object,VectorF vec, const MaterialPropertyMap::MapEntry* mat)
 {
    if (!isGhost())  {
       char buff1[256];
       char buff2[32];
 
+      const char* matName = mat ? mat->name : "DefaultMaterial";
+
       dSprintf(buff1,sizeof(buff1),"%f %f %f",vec.x, vec.y, vec.z);
       dSprintf(buff2,sizeof(buff2),"%f",vec.len());
-      Con::executef(mDataBlock,5,"onCollision",scriptThis(),object->scriptThis(), buff1, buff2);
+      Con::executef(mDataBlock,5,"onCollision",scriptThis(),object->scriptThis(), buff1, buff2, matName);
    }
 }
 

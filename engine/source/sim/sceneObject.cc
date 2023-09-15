@@ -741,6 +741,11 @@ void SceneObject::closePortal(const U32   /*portalIndex*/,
    AssertISV(false, "Error, (essentially) pure virtual function called.  Any object this is called on should override this function");
 }
 
+MaterialPropertyMap::MapEntry* SceneObject::getMaterialProperty(U32)
+{
+    return nullptr;
+}
+
 void SceneObject::getWSPortalPlane(const U32 /*portalIndex*/, PlaneF*)
 {
    AssertISV(false, "Error, (essentially) pure virtual function called.  Any object this is called on should override this function");

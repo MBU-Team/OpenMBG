@@ -783,6 +783,7 @@ protected:
       U32 objectNumber;
       SimTime expireTime;
       VectorF vector;
+      const MaterialPropertyMap::MapEntry* material;
    };
    CollisionTimeout* mTimeoutList;
    static CollisionTimeout* sFreeTimeoutList;
@@ -794,12 +795,12 @@ protected:
    /// This gets called when an object collides with this object
    /// @param   object   Object colliding with this object
    /// @param   vec   Vector along which collision occured
-   virtual void onCollision(ShapeBase* object, VectorF vec);
+   virtual void onCollision(ShapeBase* object, VectorF vec, const MaterialPropertyMap::MapEntry* m);
 
    /// Add a collision to the queue of collisions waiting to be handled @see onCollision
    /// @param   object   Object collision occurs with
    /// @param   vec      Vector along which collision occurs
-   void queueCollision(ShapeBase* object, const VectorF& vec);
+   void queueCollision(ShapeBase* object, const VectorF& vec, U32 mat);
 
    /// @}
  protected:
@@ -935,6 +936,8 @@ protected:
    virtual void onUnmount(ShapeBase* obj,S32 node);
    virtual void onImpact(SceneObject* obj, VectorF vec);
    virtual void onImpact(VectorF vec);
+
+   virtual void controlPrePacketSend(GameConnection* conn) {};
    /// @}
 
 public:

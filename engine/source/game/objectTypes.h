@@ -49,6 +49,7 @@ enum SimObjectTypes
    ProjectileObjectType =        bit(18),
    ExplosionObjectType  =        bit(19),
    CorpseObjectType =            bit(20),
+   ForceObjectType =             bit(21),
    DebrisObjectType =            bit(22),
    PhysicalZoneObjectType =      bit(23),
    StaticTSObjectType =          bit(24),

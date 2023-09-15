@@ -567,7 +567,7 @@ void Item::updatePos(const U32 /*mask*/, const F32 dt)
                nonStatic = true;
             if (isServerObject() && (typeMask & ShapeBaseObjectType)) {
                ShapeBase* col = static_cast<ShapeBase*>(rinfo.object);
-               queueCollision(col,mVelocity - col->getVelocity());
+               queueCollision(col,mVelocity - col->getVelocity(), 0);
             }
          }
       }
@@ -698,7 +698,7 @@ void Item::updatePos(const U32 /*mask*/, const F32 dt)
                      nonStatic = true;
                   if (isServerObject() && (typeMask & ShapeBaseObjectType)) {
                      ShapeBase* col = static_cast<ShapeBase*>(collision->object);
-                     queueCollision(col,mVelocity - col->getVelocity());
+                     queueCollision(col,mVelocity - col->getVelocity(), 0);
                   }
                }
             }

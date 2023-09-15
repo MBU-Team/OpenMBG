@@ -807,6 +807,11 @@ void SimObject::onDeleteNotify(SimObject*)
 {
 }
 
+void SimObject::getEditorClassName(char* write)
+{
+    dStrcpy(write, getClassRep()->getClassName());
+}
+
 void SimObject::onNameChange(const char*)
 {
 }

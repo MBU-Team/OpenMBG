@@ -18,7 +18,7 @@ void collisionFilter(SceneObject* object,void *key)
       // We've hit it's bounding box, that's close enough for items.
       Item* item = static_cast<Item*>(object);
       if (ptr != item->getCollisionObject())
-         ptr->queueCollision(item,ptr->getVelocity() - item->getVelocity());
+         ptr->queueCollision(item,ptr->getVelocity() - item->getVelocity(), 0);
    }
    else
       if (object->getTypeMask() & TriggerObjectType) {
@@ -30,7 +30,7 @@ void collisionFilter(SceneObject* object,void *key)
          if (object->getTypeMask() & CorpseObjectType)  {
             // Ok, guess it's close enough for corpses too...
             ShapeBase* col = static_cast<ShapeBase*>(object);
-            ptr->queueCollision(col,ptr->getVelocity() - col->getVelocity());
+            ptr->queueCollision(col,ptr->getVelocity() - col->getVelocity(), 0);
          }
          else
             object->buildPolyList(info->polyList,info->boundingBox,info->boundingSphere);

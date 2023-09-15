@@ -77,6 +77,7 @@ class TSShapeInstance
    struct ObjectInstance;
    friend class TSThread;
    friend class TSPartInstance;
+   friend class ShapeBase;
 
    static void init();
    static void destroy();

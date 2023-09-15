@@ -2618,7 +2618,7 @@ bool Player::updatePos(const F32 travelTime)
          // Track collisions
          if (!isGhost() && collision->object->getTypeMask() & ShapeBaseObjectType) {
             ShapeBase* col = static_cast<ShapeBase*>(collision->object);
-            queueCollision(col,mVelocity - col->getVelocity());
+            queueCollision(col,mVelocity - col->getVelocity(), 0);
          }
       }
       else
@@ -2731,7 +2731,7 @@ void Player::findContact(bool* run,bool* jump,VectorF* contactNormal)
          // If we've overlapped the worldbounding boxes, then that's it...
          if (getWorldBox().isOverlapped(pConvex->getObject()->getWorldBox()))  {
             ShapeBase* col = static_cast<ShapeBase*>(pConvex->getObject());
-            queueCollision(col,getVelocity() - col->getVelocity());
+            queueCollision(col,getVelocity() - col->getVelocity(), 0);
          }
       }
       else if (objectMask & ItemObjectType) {
@@ -2739,7 +2739,7 @@ void Player::findContact(bool* run,bool* jump,VectorF* contactNormal)
          Item* item = static_cast<Item*>(pConvex->getObject());
          if (getWorldBox().isOverlapped(item->getWorldBox()))
             if (this != item->getCollisionObject())
-               queueCollision(item,getVelocity() - item->getVelocity());
+               queueCollision(item,getVelocity() - item->getVelocity(), 0);
       }
       else if ((objectMask & mask) && !(objectMask & PhysicalZoneObjectType)) {
          Box3F convexBox = pConvex->getBoundingBox();

@@ -1092,7 +1092,7 @@ bool Vehicle::resolveCollision(Rigid&  ns,CollisionList& cList)
                // Keep track of objects we collide with
                if (!isGhost() && c.object->getTypeMask() & ShapeBaseObjectType) {
                   ShapeBase* col = static_cast<ShapeBase*>(c.object);
-                  queueCollision(col,v - col->getVelocity());
+                  queueCollision(col,v - col->getVelocity(), 0);
                }
             }
          }
@@ -1194,7 +1194,7 @@ bool Vehicle::resolveDisplacement(Rigid& ns,CollisionState *state, F32 dt)
       {
          // Queue collision and change in velocity
          VectorF dv = (objOldMom - objNewMom) / obj->getMass();
-         queueCollision(static_cast<ShapeBase*>(obj), dv);
+         queueCollision(static_cast<ShapeBase*>(obj), dv, 0);
          return true;
       }
    }
@@ -1253,12 +1253,12 @@ void Vehicle::findCallback(SceneObject* obj,void *key)
    }
    else if (objectMask & CorpseObjectType) {
       ShapeBase* col = static_cast<ShapeBase*>(obj);
-      vehicle->queueCollision(col,vehicle->getVelocity() - col->getVelocity());
+      vehicle->queueCollision(col,vehicle->getVelocity() - col->getVelocity(), 0);
    }
    else if (objectMask & ItemObjectType) {
       Item* item = static_cast<Item*>(obj);
       if (vehicle != item->getCollisionObject())
-         vehicle->queueCollision(item,vehicle->getVelocity() - item->getVelocity());
+         vehicle->queueCollision(item,vehicle->getVelocity() - item->getVelocity(), 0);
    }
 }
 

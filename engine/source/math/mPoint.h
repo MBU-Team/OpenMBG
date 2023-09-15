@@ -261,6 +261,7 @@ class Point2D
 
 
 //------------------------------------------------------------------------------
+class Point3D;
 class Point3F
 {
    //-------------------------------------- Public data
@@ -272,6 +273,7 @@ class Point3F
   public:
    Point3F();
    Point3F(const Point3F&);
+   Point3F(const Point3D&);
    Point3F(const F32 _x, const F32 _y, const F32 _z);
 
    //-------------------------------------- Non-math mutators and misc functions
@@ -348,6 +350,7 @@ class Point3D
   public:
    Point3D();
    Point3D(const Point3D&);
+   Point3D(const Point3F&);
    Point3D(const F64 _x, const F64 _y, const F64 _z);
 
    //-------------------------------------- Non-math mutators and misc functions
@@ -1147,6 +1150,11 @@ inline Point3F::Point3F(const Point3F& _copy)
    //
 }
 
+inline Point3F::Point3F(const Point3D& _copy)
+    : x(_copy.x), y(_copy.y), z(_copy.z)
+{
+    //
+}
 
 inline Point3F::Point3F(const F32 _x, const F32 _y, const F32 _z)
  : x(_x), y(_y), z(_z)
@@ -1391,6 +1399,11 @@ inline Point3D::Point3D(const Point3D& _copy)
    //
 }
 
+inline Point3D::Point3D(const Point3F& _copy)
+    : x(_copy.x), y(_copy.y), z(_copy.z)
+{
+    //
+}
 
 inline Point3D::Point3D(const F64 _x, const F64 _y, const F64 _z)
  : x(_x), y(_y), z(_z)
