@@ -1,0 +1,53 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(MessageHud) {
+   profile = "GuiDefaultProfile";
+   horizSizing = "width";
+   vertSizing = "height";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "0";
+   helpTag = "0";
+      noCursor = "1";
+
+   new GuiControl(MessageHud_Frame) {
+      profile = "GuiDefaultProfile";
+      horizSizing = "right";
+      vertSizing = "bottom";
+      position = "120 375";
+      extent = "400 24";
+      minExtent = "8 8";
+      visible = "1";
+      helpTag = "0";
+
+      new GuiTextCtrl(MessageHud_Text) {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "6 5";
+         extent = "8 18";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+         maxLength = "255";
+      };
+      new GuiTextEditCtrl(MessageHud_Edit) {
+         profile = "GuiTextEditProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "0 5";
+         extent = "10 18";
+         minExtent = "8 8";
+         visible = "1";
+         altCommand = "$ThisControl.eval();";
+         helpTag = "0";
+         maxLength = "120";
+         escapeCommand = "MessageHud_Edit.onEscape();";
+         historySize = "5";
+         password = "0";
+         tabComplete = "0";
+         sinkAllKeyEvents = "0";
+      };
+   };
+};
+//--- OBJECT WRITE END ---

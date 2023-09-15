@@ -1,0 +1,88 @@
+new GuiControlProfile ("LoadingGuiContentProfile")
+{
+   opaque = true;
+   fillColor = "200 200 200";
+   border = true;
+   borderColor   = "0 0 0";
+};
+
+//--- OBJECT WRITE BEGIN ---
+new GuiChunkedBitmapCtrl(LoadingGui) {
+   profile = "GuiContentProfile";
+   horizSizing = "width";
+   vertSizing = "height";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+   bitmap = "./background.jpg";
+   useVariable = "0";
+   tile = "0";
+      qLineCount = "0";
+
+   new GuiBitmapCtrl() {
+      profile = "GuiContentProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "86 77";
+      extent = "468 325";
+      minExtent = "8 8";
+      visible = "1";
+      helpTag = "0";
+      bitmap = "./loading/loadingGui";
+      wrap = "0";
+
+      new GuiMLTextCtrl(LOAD_MapName) {
+         profile = "GuiMLTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "134 78";
+         extent = "323 32";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+         lineSpacing = "2";
+         allowColorChars = "0";
+         maxChars = "-1";
+      };
+      new GuiProgressCtrl(LoadingProgress) {
+         profile = "GuiProgressProfile";
+         horizSizing = "right";
+         vertSizing = "top";
+         position = "153 133";
+         extent = "269 78";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "320 233";
+         extent = "88 50";
+         minExtent = "8 8";
+         visible = "1";
+         command = "disconnect();";
+         helpTag = "0";
+         text = "play";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./loading/cancel";
+      };
+      new GuiBitmapCtrl() {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "151 131";
+         extent = "278 86";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+         bitmap = "./loading/overlay";
+         wrap = "0";
+      };
+   };
+};
+//--- OBJECT WRITE END ---

@@ -1,0 +1,12 @@
+EXPORTS
+gluBuild1DMipmaps=_gluBuild1DMipmaps@24
+gluBuild2DMipmaps=_gluBuild2DMipmaps@28
+gluErrorString=_gluErrorString@4
+gluGetString=_gluGetString@4
+gluLookAt=_gluLookAt@72
+gluOrtho2D=_gluOrtho2D@32
+gluPerspective=_gluPerspective@32
+gluPickMatrix=_gluPickMatrix@36
+gluProject=_gluProject@48
+gluScaleImage=_gluScaleImage@36
+gluUnProject=_gluUnProject@48

@@ -1,0 +1,224 @@
+// !$*UTF8*$!
+{
+	00CA61F500F8123F7F000001 /* Project object */ = {
+		activeArchitecture = i386;
+		activeBuildConfigurationName = Development;
+		activeExecutable = 8C6759EA2116732200B40F32 /* Torque-MacCarb-Debug (Upgraded) */;
+		activeTarget = 8C6758572116732200B40F32 /* Torque-MacCarb-Debug (Upgraded) */;
+		codeSenseManager = 8C39404521166EC800EE983C /* Code sense */;
+		executables = (
+			8C39402621166EC000EE983C /* Torque-MacCarb-Debug */,
+			8C39402721166EC000EE983C /* Torque-MacCarb-Release */,
+			8C6759EA2116732200B40F32 /* Torque-MacCarb-Debug (Upgraded) */,
+			8C675B7D2116732300B40F32 /* Torque-MacCarb-Release (Upgraded) */,
+		);
+		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXExecutablesDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXExecutablesDataSource_NameID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					22,
+					300,
+					167,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXExecutablesDataSource_ActiveFlagID,
+					PBXExecutablesDataSource_NameID,
+					PBXExecutablesDataSource_CommentsID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					279,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXConfiguration.PBXTargetDataSource.PBXTargetDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					239,
+					60,
+					20,
+					48.16259765625,
+					43,
+					43,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXTargetDataSource_PrimaryAttribute,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 555119374;
+			PBXWorkspaceStateSaveDate = 555119374;
+		};
+		sourceControlManager = 8C39404421166EC800EE983C /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	00CA623B00F8123F7F000001 /* Torque-MacCarb-Debug */ = {
+		activeExec = 0;
+		executables = (
+			8C39402621166EC000EE983C /* Torque-MacCarb-Debug */,
+		);
+	};
+	00CA626700F8123F7F000001 /* Torque-MacCarb-Release */ = {
+		activeExec = 0;
+		executables = (
+			8C39402721166EC000EE983C /* Torque-MacCarb-Release */,
+		);
+	};
+	00CA629700F81BB27F000001 /* audioDataBlock.cc */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {798, 7756}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 548}";
+		};
+	};
+	8C39402621166EC000EE983C /* Torque-MacCarb-Debug */ = {
+		isa = PBXExecutable;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		breakpointsEnabled = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		dylibVariantSuffix = "";
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = "Torque-MacCarb-Debug";
+		sourceDirectories = (
+		);
+	};
+	8C39402721166EC000EE983C /* Torque-MacCarb-Release */ = {
+		isa = PBXExecutable;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		breakpointsEnabled = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = "Torque-MacCarb-Release";
+		sourceDirectories = (
+		);
+	};
+	8C39404421166EC800EE983C /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+		};
+	};
+	8C39404521166EC800EE983C /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	8C6758572116732200B40F32 /* Torque-MacCarb-Debug (Upgraded) */ = {
+		activeExec = 0;
+		executables = (
+			8C6759EA2116732200B40F32 /* Torque-MacCarb-Debug (Upgraded) */,
+		);
+	};
+	8C6759EA2116732200B40F32 /* Torque-MacCarb-Debug (Upgraded) */ = {
+		isa = PBXExecutable;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		breakpointsEnabled = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = "Torque-MacCarb-Debug (Upgraded)";
+		sourceDirectories = (
+		);
+	};
+	8C6759EB2116732200B40F32 /* Torque-MacCarb-Release (Upgraded) */ = {
+		activeExec = 0;
+		executables = (
+			8C675B7D2116732300B40F32 /* Torque-MacCarb-Release (Upgraded) */,
+		);
+	};
+	8C675B7D2116732300B40F32 /* Torque-MacCarb-Release (Upgraded) */ = {
+		isa = PBXExecutable;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		breakpointsEnabled = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = "Torque-MacCarb-Release (Upgraded)";
+		sourceDirectories = (
+		);
+	};
+	F5F259A2016EE47901A8EAF9 /* aiConnection.cc */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {691, 2800}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 789}";
+			sepNavWindowFrame = "{{15, 183}, {750, 558}}";
+		};
+	};
+}

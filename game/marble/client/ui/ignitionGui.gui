@@ -1,0 +1,127 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiChunkedBitmapCtrl(IgnitionGui) {
+   profile = "GuiContentProfile";
+   horizSizing = "width";
+   vertSizing = "height";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+   bitmap = "./background.jpg";
+   useVariable = "0";
+   tile = "0";
+      io = "2888";
+
+   new GuiBitmapCtrl() {
+      profile = "GuiDefaultProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "143 6";
+      extent = "354 468";
+      minExtent = "8 8";
+      visible = "1";
+      helpTag = "0";
+      bitmap = "./register/Registra_gui";
+      wrap = "0";
+
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "top";
+         position = "77 368";
+         extent = "84 56";
+         minExtent = "8 8";
+         visible = "1";
+         command = "quit();";
+         accelerator = "escape";
+         helpTag = "0";
+         text = "NO";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./register/cancel";
+            simpleStyle = "0";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "top";
+         position = "199 360";
+         extent = "86 66";
+         minExtent = "8 8";
+         visible = "1";
+         command = "IgnitionGui.register();";
+         accelerator = "return";
+         helpTag = "0";
+         text = "YES";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./register/ok";
+            simpleStyle = "0";
+      };
+      new GuiTextEditCtrl(IgnitionGuiKey) {
+         profile = "GuiTPTextEditProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "83 327";
+         extent = "205 18";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+         maxLength = "255";
+         historySize = "0";
+         password = "0";
+         tabComplete = "0";
+         sinkAllKeyEvents = "0";
+      };
+      new GuiMLTextCtrl(IgnitionGuiText) {
+         profile = "GuiMLTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "81 127";
+         extent = "202 112";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+         lineSpacing = "2";
+         allowColorChars = "0";
+         maxChars = "-1";
+      };
+   };
+};
+//--- OBJECT WRITE END ---
+
+function runIgnition()
+{
+   IgnitionGui.io = new IgnitionObject();
+   if(!IgnitionGui.io)
+   {
+      Canvas.setContent(MainMenuGui);
+      return;
+   }
+   %status = IgnitionGui.io.validate();
+   echo("Ignition: " @ %status);
+
+   if (%status $= "ValidTicket")
+      Canvas.setContent(MainMenuGui);
+   else {
+      Canvas.setContent(IgnitionGui);
+      IgnitionGuiText.setText(
+"You must be connected to the internet in order "@
+"to register this product. Please enter the "@
+"registration code from your purchase order "@
+"confirmation email. If you have lost your "@
+"confirmation email, registration numbers "@
+"for all your <a:www.garagegames.com>GarageGames</a> products can be "@
+"found on your GarageGames <a:www.garagegames.com/index.php?sec=my&mod=home&page=home>home page</a>."@
+"\n\nRegistration ID: " @ IgnitionGui.io.machineGUID);
+   }
+      
+}
+
+function IgnitionGui::register(%this)
+{
+   IgnitionStatusGui.io = %this.io;
+   IgnitionStatusGui.key = IgnitionGuiKey.getValue();
+   Canvas.pushDialog(IgnitionStatusGui);
+}

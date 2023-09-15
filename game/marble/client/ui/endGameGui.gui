@@ -1,0 +1,72 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(EndGameGui) {
+   profile = "GuiDefaultProfile";
+   horizSizing = "width";
+   vertSizing = "height";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+      useVariable = "0";
+      tile = "0";
+
+   new GuiBitmapCtrl() {
+      profile = "GuiDefaultProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "77 9";
+      extent = "485 461";
+      minExtent = "8 8";
+      visible = "1";
+      helpTag = "0";
+      bitmap = "./play/playGui.png";
+      wrap = "0";
+
+      new GuiMLTextCtrl(EndGameGuiDescription) {
+         profile = "GuiMLTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "48 20";
+         extent = "429 384";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+         lineSpacing = "2";
+         allowColorChars = "0";
+         maxChars = "-1";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "333 386";
+         extent = "113 47";
+         minExtent = "8 8";
+         visible = "1";
+         command = "setPlayMissionGui();";
+         accelerator = "enter";
+         helpTag = "0";
+         text = "play";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./endgame/continue";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "51 388";
+         extent = "104 48";
+         minExtent = "8 8";
+         visible = "1";
+         command = "Canvas.popDialog(EndGameGui);restartLevel();";
+         helpTag = "0";
+         text = "Prev";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./endgame/replay";
+      };
+   };
+};
+//--- OBJECT WRITE END ---

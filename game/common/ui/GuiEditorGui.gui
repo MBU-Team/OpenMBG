@@ -1,0 +1,469 @@
+//----------------------------------------------------------------
+
+new GuiControlProfile (BackFillProfile)
+{
+   opaque = true;
+   fillColor = "0 94 94";
+   border = true;
+   borderColor = "255 128 128";
+   fontType = "Arial";
+   fontSize = 12;
+   fontColor = "0 0 0";
+   fontColorHL = "32 100 100";
+   fixedExtent = true;
+   justify = "center";
+};
+
+new GuiControl(GuiEditorGui) {
+   profile = GuiDefaultProfile;
+   position = "0 0";
+   extent = "800 600";
+   helpPage = "3. Gui Editor";
+   
+   new GuiControl() // background
+   {
+      profile = "BackFillProfile";
+		horizSizing = "right";
+		vertSizing = "bottom";
+      position = "0 0";
+      extent = "640 480";
+   };
+   new GuiControl(GuiEditorContent)
+   {
+      profile = "GuiDefaultProfile";
+		horizSizing = "right";
+		vertSizing = "bottom";
+      position = "0 0";
+      extent = "640 480";
+   };
+   new GuiEditCtrl(GuiEditor)
+   {
+      profile = "GuiTextEditProfile"; // so it's tabable
+		horizSizing = "right";
+		vertSizing = "bottom";
+      position = "0 0";
+      extent = "640 480";
+   };
+   new GuiFrameSetCtrl()
+   {
+      position = "640 0";
+      extent = "160 600";
+      profile = "GuiButtonProfile";
+      horizSizing = "width";
+      vertSizing = "height";
+      columns = "0";
+      rows = "0 300";
+      
+      //----------------------------------------
+      // Tree View
+		new GuiScrollCtrl() 
+      {
+         profile = "GuiScrollProfile";
+			position = "0 0";
+			extent = "160 300";
+			horizSizing = "width";
+			vertSizing = "height";
+			vScrollBar = "alwaysOn";
+			hScrollBar = "dynamic";
+
+			new GuiTreeViewCtrl(GuiEditorTreeView)
+         {
+            profile = "GuiTreeViewProfile";
+				position = "0 0";
+				horizSizing = "width";
+			};
+		};
+      //----------------------------------------
+      // Inspector
+      new GuiControl() { 
+         profile = "GuiDefaultProfile";
+         horizSizing = "width";
+         vertSizing = "height";
+         position = "0 0";
+         extent = "160 300";
+         
+         new GuiButtonCtrl () {
+            profile = "GuiButtonSmProfile";
+   		   position = "6, 16";
+   		   extent = "40 16";
+   		   font = "12 252 Arial";
+   		   fontHL = "12 253 Arial";
+   		   text = "APPLY";
+   		   command = "GuiEditorInspectApply();";
+   		   fillColor = "249";
+   		   borderColor = "249";
+   		   selectBorderColor = "255";
+   	   };
+
+   	   new GuiTextCtrl() {
+            profile = "GuiTextProfile";
+   		   position = "52 4";
+   		   extent = "30 16";
+   		   font = "12 244 Arial";
+   		   text = "Name:";
+   	   };
+
+   	   new GuiTextEditCtrl (GuiEditorInspectName) {
+            profile = "GuiTextEditProfile";
+   		   position = "84 3";
+   		   extent = "72 18";
+   		   text = "";
+   		   horizSizing = "width";
+   		   vertSizing = "bottom";
+   	   };
+
+   	   new GuiScrollCtrl() {
+            profile = "GuiScrollProfile";
+   		   position = "0 24";
+   		   extent = "160 276";
+   		   horizSizing = "width";
+   		   vertSizing = "height";
+   		   vScrollBar = "alwaysOn";
+   		   hScrollBar = "alwaysOff";
+
+   			new GuiInspector (GuiEditorInspectFields) {
+               profile = "GuiDefaultProfile";
+   				position = "0 0";
+   				extent = "140 0";
+   				horizSizing = "width";
+   				vertSizing = "bottom";
+   		   };
+   	   };
+      };
+   };
+
+   //----------------------------------------
+   // toolbar
+   new GuiControl() {
+      profile = "GuiWindowProfile";
+      horizSizing = "right";
+      vertSizing = "height";
+      position = "0 480";
+      extent = "640 120";
+      
+   	new GuiButtonCtrl()  {
+         profile = "GuiButtonSmProfile";
+   		position = "4 24";
+   		extent = "70 16";
+   		text = "Align Left";
+   		command = "GuiEditor.Justify(0);";
+   	};
+
+   	new GuiButtonCtrl()  {
+         profile = "GuiButtonSmProfile";
+   		position = "80 24";
+   		extent = "70 16";
+   		text = "Align Right";
+   		command = "GuiEditor.Justify(2);";
+   	};
+
+   	new GuiButtonCtrl()  {
+         profile = "GuiButtonSmProfile";
+   		position = "156 24";
+   		extent = "70 16";
+   		text = "Center Horiz";
+   		command = "GuiEditor.Justify(1);";
+   	};
+
+   	new GuiButtonCtrl()  {
+         profile = "GuiButtonSmProfile";
+   		position = "232 24";
+   		extent = "70 16";
+   		text = "Align Top";
+   		command = "GuiEditor.Justify(3);";
+   	};
+
+   	new GuiButtonCtrl()  {
+         profile = "GuiButtonSmProfile";
+   		position = "308 24";
+   		extent = "70 16";
+   		text = "Align Bottom";
+   		command = "GuiEditor.Justify(4);";
+   	};
+	   new GuiControlListPopup(GuiEditorClassPopup)
+	   {
+            profile = "GuiEditorClassProfile";
+   		   position = "382 24";
+   		   extent = "180 16";
+	   };
+	   new GuiPopUpMenuCtrl(GuiEditorContentList)
+	   {
+            profile = "GuiPopUpMenuProfile";
+   		   position = "382 44";
+   		   extent = "180 16";
+	   };
+   	new GuiButtonCtrl () {
+         profile = "GuiButtonSmProfile";
+   		position = "570 24";
+   		extent = "60 16";
+   		text = "New...";
+   		command = "GuiEditorStartCreate();";
+   	};
+   	new GuiButtonCtrl () {
+         profile = "GuiButtonSmProfile";
+   		position = "570 44";
+   		extent = "60 16";
+   		text = "Save";
+   		command = "GuiEditorSaveGui();";
+   	};
+   	new GuiButtonCtrl ("GuiEditorButtonToggle") {
+         profile = "GuiButtonSmProfile";
+   		position = "4 44";
+   		extent = "70 16";
+   		text = "Help";
+   		command = "getHelp(\"3. Gui Editor\");";
+   	};
+
+   	new GuiButtonCtrl () {
+         profile = "GuiButtonSmProfile";
+   		position = "80 44";
+   		extent = "70 16";
+   		text = "Space Vert";
+   		command = "GuiEditor.Justify(5);";
+   	};
+
+   	new GuiButtonCtrl() {
+         profile = "GuiButtonSmProfile";
+   		position = "156 44";
+   		extent = "70 16";
+   		text = "Space Horiz";
+   		command = "GuiEditor.Justify(6);";
+   	};
+
+   	new GuiButtonCtrl() {
+         profile = "GuiButtonSmProfile";
+   		position = "232 44";
+   		extent = "70 16";
+   		text = "Bring Front";
+   		command = "GuiEditor.BringToFront();";
+   	};
+
+   	new GuiButtonCtrl() {
+         profile = "GuiButtonSmProfile";
+   		position = "308 44";
+   		extent = "70 16";
+   		text = "Send Back";
+   		command = "GuiEditor.PushToBack();";
+   	};
+   };
+};
+
+
+//----------------------------------------
+new GuiControl(NewGuiDialog)
+{
+   profile = "GuiDialogProfile";
+   position = "0 0";
+   extent = "640 480";
+   
+	new GuiWindowCtrl()
+   {
+      profile = "GuiWindowProfile";
+		position = "220 146";
+		extent = "200 188";
+		text = "Create new GUI";
+      canMove = "false";  
+      canClose = "false";
+      canMinimize = "false";
+      canMaximize = "false";
+      horizSizing = "center";
+      vertSizing = "center";
+      
+		new GuiTextCtrl()
+      {
+         profile = "GuiTextProfile";
+			position = "20 28";
+			text = "GUI Name:";
+		};
+		new GuiTextEditCtrl(NewGuiDialogName)
+      {
+         profile = "GuiTextEditProfile";
+			position = "20 44";
+			extent = "160 20";
+		};
+		new GuiTextCtrl()
+      {
+         profile = "GuiTextProfile";
+			position = "20 68";
+			text = "Class:";
+		};
+		new GuiControlListPopup(NewGuiDialogClass)
+      {
+         profile = "GuiControlListPopupProfile";
+			position = "20 84";
+			extent = "160 20";
+		};
+		new GuiButtonCtrl() {
+         profile = "GuiButtonProfile";
+			position = "56 156";
+			extent = "40 16";
+			text = "Create";
+			command = "GuiEditorCreate();";
+		};
+		new GuiButtonCtrl() {
+         profile = "GuiButtonProfile";
+			position = "104 156";
+			extent = "40 16";
+			text = "Cancel";
+			command = "Canvas.popDialog(NewGuiDialog);";
+		};
+   };
+};
+
+
+//----------------------------------------
+function GuiEditorStartCreate()
+{
+   NewGuiDialogClass.setText("GuiControl");
+   NewGuiDialogClass.sort();
+   NewGuiDialogName.setValue("NewGui");
+   Canvas.pushDialog(NewGuiDialog);
+}
+
+//----------------------------------------
+function GuiEditorCreate()
+{
+   %name = NewGuiDialogName.getValue();
+   %class = NewGuiDialogClass.getText();
+   Canvas.popDialog(NewGuiDialog);
+   %obj = eval("return new " @ %class @ "(" @ %name @ ");");
+   GuiEditorOpen(%obj);
+}
+
+//----------------------------------------
+function GuiEditorSaveGui()
+{
+   %obj = GuiEditorContent.getObject(0);
+   if(%obj == -1 || %obj.getName() $= "")
+      return;
+   %name = %obj.getName() @ ".gui";
+   getSaveFilename("*.gui", "GuiEditorSaveGuiCallback", %name);
+}
+
+function GuiEditorSaveGuiCallback(%name)
+{
+   %obj = GuiEditorContent.getObject(0);
+   
+   // make sure it is saved...
+   if(!%obj.save(%name))
+   {
+      MessageBoxOK("GuiEditor Save Failure", "Failed to save '" @ %name @ "'. The file may be read-only.");
+   }
+}   
+
+//----------------------------------------
+function GuiEdit(%val)
+{
+   if(%val != 0 || !$testCheats)
+      return;
+      
+   %content = Canvas.getContent();
+   
+   if(%content == GuiEditorGui.getId())
+   {
+      //GlobalActionMap.bind(mouse, button1, mouselook);
+
+      %obj = GuiEditorContent.getObject(0);
+      if(%obj != -1)
+      {
+         GuiGroup.add(%obj);
+         Canvas.setContent(%obj);
+      }
+      
+      GlobalActionMap.unbind( keyboard, "delete" );
+   }
+   else
+   {
+      //GlobalActionMap.unbind(mouse, button1);
+      GuiEditorOpen(%content);
+   }
+}
+
+//----------------------------------------
+function GuiEditorOpen(%content)
+{
+   Canvas.setContent(GuiEditorGui);
+   while((%obj = GuiEditorContent.getObject(0)) != -1)
+      GuiGroup.add(%obj); // get rid of anything being edited
+
+   %i = 0;
+   GuiEditorContentList.clear();
+   while((%obj = GuiGroup.getObject(%i)) != -1)
+   {
+      if(%obj.getName() !$= Canvas)
+      {
+         if(%obj.getName() $= "")
+            %name = "(unnamed) - " @ %obj;
+         else
+            %name = %obj.getName() @ " - " @ %obj;
+
+         GuiEditorContentList.add(%name, %obj);
+      }
+      %i++;
+   }
+   GuiEditorContent.add(%content);
+   GuiEditorContentList.sort();
+   GuiEditorClassPopup.sort();
+   
+   if(%content.getName() $= "")
+      %name = "(unnamed) - " @ %content;
+   else
+      %name = %content.getName() @ " - " @ %content;
+   
+   GuiEditorContentList.setText(%name);
+   GuiEditorClassPopup.setText("New Control");
+   GuiEditor.setRoot(%content);
+   %content.resize(0,0,640,480);
+   GuiEditorTreeView.open(%content);
+}
+
+//----------------------------------------
+function GuiEditorContentList::onSelect(%this, %id)
+{
+   GuiEditorOpen(%id);
+}
+
+//----------------------------------------
+function GuiEditorClassPopup::onSelect(%this, %id)
+{
+   %class = %this.getText();
+   %obj = eval("return new " @ %class @ "();");
+   GuiEditor.addNewCtrl(%obj);
+   GuiEditorClassPopup.setText("New Control");
+}
+
+//----------------------------------------
+function GuiEditorTreeView::onSelect(%this, %obj, %rightMouse)
+{
+   if(%rightMouse)
+      GuiEditor.setCurrentAddSet(%obj);
+   else
+   {
+      GuiEditorInspectFields.inspect(%obj);
+      GuiEditorInspectName.setValue(%obj.getName());
+      GuiEditor.select(%obj);
+   }
+}
+
+//----------------------------------------
+function GuiEditorInspectApply()
+{
+   GuiEditorInspectFields.apply(GuiEditorInspectName.getValue());
+}
+
+//----------------------------------------
+function GuiEditor::onSelect(%this, %ctrl)
+{
+   
+   GuiEditorInspectFields.inspect(%ctrl);
+   GuiEditorInspectName.setValue(%ctrl.getName());
+   GuiEditor.select(%ctrl);
+}
+
+//----------------------------------------
+function GuiEditorDeleteSelected( %val ) {
+   if( %val )
+      GuiEditor.deleteSelection();
+}      
+
+GlobalActionMap.bind(keyboard, "f10", GuiEdit);

@@ -1,0 +1,81 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(MainChatHud) {
+   profile = "GuiModelessDialogProfile";
+   horizSizing = "width";
+   vertSizing = "height";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+      noCursor = "1";
+
+   new GuiNoMouseCtrl() {
+      profile = "GuiDefaultProfile";
+      horizSizing = "relative";
+      vertSizing = "bottom";
+      position = "0 133";
+      extent = "400 343";
+      minExtent = "8 8";
+      visible = "1";
+      helpTag = "0";
+
+      new GuiControl(OuterChatHud) {
+         profile = "GuiDefaultProfile";
+         horizSizing = "width";
+         vertSizing = "bottom";
+         position = "8 223";
+         extent = "256 72";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+
+         new GuiButtonCtrl(chatPageDown) {
+            profile = "GuiButtonProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "220 58";
+            extent = "36 14";
+            minExtent = "8 8";
+            visible = "0";
+            helpTag = "0";
+            text = "Dwn";
+            groupNum = "-1";
+            buttonType = "PushButton";
+         };
+         new GuiScrollCtrl(ChatScrollHud) {
+            profile = "ChatHudScrollProfile";
+            horizSizing = "width";
+            vertSizing = "bottom";
+            position = "0 0";
+            extent = "256 72";
+            minExtent = "8 8";
+            visible = "1";
+            helpTag = "0";
+            willFirstRespond = "1";
+            hScrollBar = "alwaysOff";
+            vScrollBar = "alwaysOff";
+            constantThumbHeight = "0";
+            childMargin = "0 0";
+
+            new GuiMessageVectorCtrl(ChatHud) {
+               profile = "ChatHudMessageProfile";
+               horizSizing = "width";
+               vertSizing = "height";
+               position = "1 1";
+               extent = "252 16";
+               minExtent = "8 8";
+               visible = "1";
+               helpTag = "0";
+               lineSpacing = "0";
+               lineContinuedIndex = "10";
+               allowedMatches[0] = "http";
+               allowedMatches[1] = "tgeserver";
+               matchColor = "0 0 255 255";
+               maxColorIndex = "5";
+            };
+         };
+      };
+   };
+};
+//--- OBJECT WRITE END ---

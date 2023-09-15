@@ -1,0 +1,44 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiFadeinBitmapCtrl(titleGui) {
+   profile = "GuiInputCtrlProfile";
+   horizSizing = "right";
+   vertSizing = "bottom";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+   bitmap = "~/client/ui/title";
+   wrap = "0";
+   fadeinTime = "125";
+   waitTime   = "3000";
+   fadeoutTime = "125";
+};
+//--- OBJECT WRITE END ---
+
+
+//-------------------------------------
+function runTitle()
+{
+   titleGui.done = false;
+   titleGui.skip = false;
+   Canvas.setContent(titleGui);
+   schedule(100, 0, checkTitleDone );
+}
+
+
+//-------------------------------------
+function titleGui::click()
+{
+   titleGui.skip = true;
+}
+
+
+//-------------------------------------
+function checkTitleDone()
+{
+   if (titleGui.done || titleGui.skip)
+      runIgnition();
+   else
+      schedule(100, 0, checkTitleDone );
+}

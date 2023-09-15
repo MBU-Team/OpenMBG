@@ -1,0 +1,136 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiChunkedBitmapCtrl(chooseGui) {
+   profile = "GuiContentProfile";
+   horizSizing = "width";
+   vertSizing = "height";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+   bitmap = "./background.jpg";
+   useVariable = "0";
+   tile = "0";
+
+   new GuiBitmapButtonCtrl() {
+      profile = "GuiButtonProfile";
+      horizSizing = "left";
+      vertSizing = "top";
+      position = "579 414";
+      extent = "51 56";
+      minExtent = "8 8";
+      visible = "1";
+      command = "Canvas.pushDialog(helpDlg);";
+      helpTag = "0";
+      text = "help";
+      groupNum = "-1";
+      buttonType = "PushButton";
+      bitmap = "./help";
+   };
+   new GuiBitmapCtrl() {
+      profile = "GuiDefaultProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "182 61";
+      extent = "284 365";
+      minExtent = "8 8";
+      visible = "1";
+      command = "PM_StartMission();";
+      helpTag = "0";
+      bitmap = "./choose/chooseGui.png";
+      wrap = "0";
+
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "28 68";
+         extent = "226 76";
+         minExtent = "8 8";
+         visible = "1";
+         command = "$MissionType=\"Beginner\";Canvas.setContent(playMissionGui);";
+         helpTag = "0";
+         text = "Beginner";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./choose/begin";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "28 145";
+         extent = "223 71";
+         minExtent = "8 8";
+         visible = "1";
+         command = "$MissionType=\"Intermediate\";Canvas.setContent(playMissionGui);";
+         helpTag = "0";
+         text = "Intermediate";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./choose/inter";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "46 212";
+         extent = "195 59";
+         minExtent = "8 8";
+         visible = "1";
+         command = "$MissionType=\"Advanced\";Canvas.setContent(playMissionGui);";
+         helpTag = "0";
+         text = "Advanced";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./choose/advan";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "47 266";
+         extent = "132 85";
+         minExtent = "8 8";
+         visible = "1";
+         command = "Canvas.setContent(mainMenuGui);";
+         helpTag = "0";
+         text = "Back";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./choose/back";
+      };
+   };
+   new GuiBitmapButtonCtrl() {
+      profile = "GuiButtonProfile";
+      horizSizing = "right";
+      vertSizing = "top";
+      position = "11 413";
+      extent = "49 58";
+      minExtent = "8 8";
+      visible = "1";
+      command = "Canvas.setContent(mainMenuGui);";
+      helpTag = "0";
+      text = "help";
+      groupNum = "-1";
+      buttonType = "PushButton";
+      bitmap = "./home";
+   };
+   new GuiButtonBaseCtrl() {
+      profile = "GuiDefaultProfile";
+      horizSizing = "right";
+      vertSizing = "bottom";
+      position = "8 10";
+      extent = "43 40";
+      minExtent = "8 8";
+      visible = "1";
+      command = "$MissionType=\"\";Canvas.setContent(playMissionGui);";
+      helpTag = "0";
+      text = "Button";
+      groupNum = "-1";
+      buttonType = "PushButton";
+   };
+};
+//--- OBJECT WRITE END ---
+
+

@@ -1,0 +1,55 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiFadeinBitmapCtrl(presentsGui) {
+   profile = "GuiInputCtrlProfile";
+   horizSizing = "right";
+   vertSizing = "bottom";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+   bitmap = "~/client/ui/presents";
+   wrap = "0";
+   fadeinTime = "125";
+   waitTime   = "2500";
+   fadeoutTime = "125";
+};
+//--- OBJECT WRITE END ---
+
+function runPresentation()
+{
+   presentsGui.done = false;
+   presentsGui.skip = false;
+   Canvas.setContent( PresentsGui );
+   if(!$presentationRunBefore)
+   {
+      $presentationRunBefore = true;
+      if(!$noMotdOrVersionCheck)
+      {
+         startVersionCheck();
+         startMotdCheck();
+      }
+   }
+   schedule(100, 0, checkPresentsDone );
+}
+   
+
+//-------------------------------------
+function presentsGui::click()
+{
+   presentsGui.skip = true;
+}
+
+
+//-------------------------------------
+function checkPresentsDone()
+{
+   if (presentsGui.skip)
+      runIgnition();
+   else if (presentsGui.done)
+      runProduction();
+   else
+      schedule(100, 0, checkPresentsDone );
+}
+
+

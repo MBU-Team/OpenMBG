@@ -1,0 +1,169 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(MOTDGui) {
+   profile = "GuiDialogProfile";
+   horizSizing = "width";
+   vertSizing = "height";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+      bitmap = "./background.jpg";
+      useVariable = "0";
+      tile = "0";
+
+   new GuiBitmapCtrl() {
+      profile = "GuiDefaultProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "97 134";
+      extent = "445 211";
+      minExtent = "48 92";
+      visible = "1";
+      helpTag = "0";
+      bitmap = "./motd/new_mess_base";
+      wrap = "0";
+         canClose = "0";
+         maxLength = "255";
+         resizeWidth = "1";
+         canMinimize = "0";
+         resizeHeight = "1";
+         canMaximize = "0";
+         canMove = "1";
+         minSize = "50 50";
+
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "top";
+         position = "322 139";
+         extent = "79 60";
+         minExtent = "8 8";
+         visible = "1";
+         command = "StartDemoTimer();Canvas.popDialog(MOTDGui);";
+         accelerator = "return";
+         helpTag = "0";
+         text = "OK";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./motd/ok";
+            simpleStyle = "0";
+      };
+      new GuiMLTextCtrl(MOTDGuiText) {
+         profile = "GuiMLTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "58 29";
+         extent = "312 28";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+         lineSpacing = "2";
+         allowColorChars = "0";
+         maxChars = "-1";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "33 136";
+         extent = "46 54";
+         minExtent = "8 8";
+         visible = "1";
+         variable = "$pref::checkMOTDAndVersion";
+         helpTag = "0";
+         text = "OK";
+         groupNum = "-1";
+         buttonType = "ToggleButton";
+         bitmap = "./motd/mess_chkbx";
+      };
+      new GuiMLTextCtrl(MOTDCheckText) {
+         profile = "GuiMLTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "86 158";
+         extent = "226 24";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+         lineSpacing = "2";
+         allowColorChars = "0";
+         maxChars = "-1";
+      };
+   };
+};
+//--- OBJECT WRITE END ---
+
+$MOTDMessage = "";
+$MOTDRecvd = false;
+
+function MOTDGui::onWake()
+{
+   MOTDCheckText.setText("<font:DomCasualD:24>Always check for new version/MOTD");
+}
+
+function showMotd()
+{
+   MOTDGuiText.setText($pref::currentMOTD);
+   $pref::LastReadMOTD = $pref::currentMOTD;
+   stopMOTDBlink();
+   Canvas.pushDialog(MOTDGui);
+}
+
+function startMOTDBlinking()
+{
+   if($MOTDBlinking)
+      return;
+   $MOTDBlinking = true;
+   doMOTDBlink(0);
+}
+
+function doMOTDBlink(%val)
+{
+   if(%val == 0)
+      MOTDButton.setBitmap("marble/client/ui/motd/mess_buttn");
+   else
+      MOTDButton.setBitmap("marble/client/ui/motd/motd_buttn");
+   $MOTDBlinkSchedule = schedule(500, 0, "doMotdBlink", !%val);
+}
+
+function stopMOTDBlink()
+{
+   if($MOTDBlinkSchedule !$= "")
+   {
+      MOTDButton.setBitmap("marble/client/ui/motd/motd_buttn");
+      cancel($MOTDBlinkSchedule);
+   }
+   $MOTDBlinking = false;
+}
+
+function checkMOTDBlink()
+{
+   if($pref::currentMOTD !$= $pref::LastReadMOTD)
+      startMOTDBlinking();
+}
+
+function startMotdCheck()
+{
+   if($pref::checkMOTDAndVersion)
+   {
+      new HTTPObject ( MOTD );
+      MOTD.get("www.garagegames.com:80", "/marbleblast/motd.html");
+      echo("Checking for a message of the day");
+   }
+}
+
+function MOTD::onLine(%this, %line)
+{
+   $MOTDMessage = $MOTDMessage NL %line;
+}
+
+function MOTD::onDisconnect(%this)
+{
+   if($MOTDMessage !$= "")
+   {
+      $pref::currentMOTD = $MOTDMessage;
+      if($pref::currentMOTD !$= $pref::LastReadMOTD)
+         startMOTDBlinking();
+   }
+}

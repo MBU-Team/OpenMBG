@@ -1,0 +1,33 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(MiniShotGui) {
+   profile = "GuiDefaultProfile";
+   horizSizing = "right";
+   vertSizing = "bottom";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+
+   new GameTSCtrl() {
+      profile = "GuiDefaultProfile";
+      horizSizing = "right";
+      vertSizing = "bottom";
+      position = "0 0";
+      extent = "258 193";
+      minExtent = "8 8";
+      visible = "1";
+      helpTag = "0";
+      cameraZRot = "0";
+      forceFOV = "0";
+   };
+};
+//--- OBJECT WRITE END ---
+
+function doMiniShot()
+{
+   Canvas.setContent(MiniShotGui);
+   Canvas.repaint();
+   screenShot(filePath($Server::MissionFile) @ "/" @ fileBase($Server::MissionFile) @ ".png", 258, 193);
+   Canvas.setContent(PlayGui);
+}

@@ -1,0 +1,64 @@
+// Instructions for updating this file:
+//      - Locate the appropriate section for this version of Torque. This
+//       is changelog_VERSION, where VERSION is the next version of Torque. Dots
+//       should be replaced with _'s.
+//     - Add your change to the appropriate subsection. There are subsections
+//       for each module of the engine. Add a subsection if necessary, the
+//       naming scheme is cl_VERSION_MODULE. (for instance, cl_1_2_terrain, for
+//       a waterblock fix.)
+/*!
+
+@page changelog Torque Engine Upgrade Guide
+
+@section changelog_intro Introduction
+
+Torque is a living, changing body of code. Things become superceded, outdated, deprecated. As a developer, you are probably interested in keeping up to date with the latest features in Torque - which means you have to upgrade your code to work with changes to the engine.
+
+With such a large project as Torque, it is difficult to  make sure that you're fully up to synch with a changing target. This section of the documentation describes changes to the engine in each version, along with what you need to do to get your code up to date, so that everything works together smoothly.
+
+
+@note For a more comprehensive and fresher list of changes, see http://www.garagegames.com/docs/torque.sdk/changelist/.
+
+@section changelog_1_2 Changes in Torque HEAD
+
+@subsection cl_1_2_core Changes to Core...
+
+    - Removed unused TagDictionary class (core/tagDictionary.*).
+
+@subsection cl_1_2_dgl Changes to DGL...
+
+    - Torque now supports loading textures up to 2048x2048! This is controlled by c_maxMipLevels in GBitmap, if you want/need higher res textures.
+
+@subsection cl_1_2_net Changes to Net...
+
+    - writePacketData() now returns void, as nothing was ever using the return value (nor was the return value being set). You will need to change all of your writePacketData() functions to return void.
+    
+    - Removed setDirtyState because it is no longer needed.
+
+@subsection cl_1_2_Game Changes to Game...
+
+    - Removed CollisionTimeout from GameBase, as it is reimplemented in ShapeBase.
+    
+    - Removed mLastDelta from GameBase, as it was unused and confusing.
+    
+@subsection cl_1_2_gui Changes to GUI...
+
+    - Removed bitmapBase from GuiProfile class as it is never used.
+
+@subsection cl_1_2_console Changes to Console...
+
+    - ConsoleMethod() has been updated to automatically provide a reference to the current object of the right type. Formerly, manual casting was required; now via a template, the cast is automatically performed, with error checking in a debug build. Code which performs the manual task has not been entirely removed from the system; however, it will be in coming updates. All Con::addCommand() calls have been expunged. The preferred method is now the ConsoleMethod/ConsoleFunction macros.
+    
+    - Added three macros to help define friend relationships with console subroutines: friend_ConsoleStaticMethod( className, returnType, name), friend_ConsoleMethod( className, returnType, name), friend_ConsoleFunction( returnType, name). Use these instead of defining friendship with a munged name!
+
+    - Grouping has been added to the scripting engine, via the ConsoleFunctionGroupBegin(groupName, usage), ConsoleFunctionGroupEnd(groupName), ConsoleMethodGroupBegin(className, groupName, usage), ConsoleMethodGroupEnd(className, groupName) macros. This is implemented via special field type. Release builds have grouping information removed.
+    
+    - Usage strings are not included in release builds.
+    
+    - Console auto-documentation has been greatly expanded. @see @ref console_autodoc
+    
+    
+    - In Dictionary::getVariable(), added a check for accessing undefined variables. The global preference variable $Con::warnUndefinedVariables turns this off or on. This is very handy for checking that your script code is typo free, and tracking down subtle errors.
+
+    - Added ConsoleLogger, a script-accessible class "designed to be used as a console consumer and log the data it receives to a file." This is used by the console autodoc support scripts to dump the documentation to a file.
+*/

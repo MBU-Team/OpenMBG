@@ -1,0 +1,58 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(RemapDlg) {
+   profile = "GuiDialogProfile";
+   horizSizing = "right";
+   vertSizing = "bottom";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+
+   new GuiBitmapCtrl(OptRemapDlg) {
+      profile = "GuiDefaultProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "170 159";
+      extent = "300 161";
+      minExtent = "48 92";
+      visible = "1";
+      helpTag = "0";
+      bitmap = "common/ui/dialog.png";
+      wrap = "0";
+         resizeHeight = "1";
+         canMaximize = "0";
+         canMove = "1";
+         minSize = "50 50";
+         canClose = "0";
+         maxLength = "255";
+         resizeWidth = "1";
+         canMinimize = "0";
+
+      new GuiMLTextCtrl(OptRemapText) {
+         profile = "GuiComic24Profile";
+         horizSizing = "center";
+         vertSizing = "bottom";
+         position = "46 60";
+         extent = "213 23";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+         lineSpacing = "2";
+         allowColorChars = "0";
+         maxChars = "-1";
+      };
+   };
+   new GuiInputCtrl(OptRemapInputCtrl) {
+   	profile = "GuiInputCtrlProfile";
+   	horizSizing = "center";
+   	vertSizing = "bottom";
+   	position = "0 0";
+   	extent = "64 64";
+   	minExtent = "8 8";
+   	visible = "1";
+   	helpTag = "0";
+   };
+};
+//--- OBJECT WRITE END ---
+

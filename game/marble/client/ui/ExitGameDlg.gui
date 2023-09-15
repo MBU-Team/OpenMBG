@@ -1,0 +1,90 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(ExitGameDlg) {
+   profile = "GuiDefaultProfile";
+   horizSizing = "width";
+   vertSizing = "height";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+      restartCallback = "resumeGame(); restartLevel();";
+
+   new GuiBitmapCtrl() {
+      profile = "GuiDefaultProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "134 148";
+      extent = "388 186";
+      minExtent = "48 92";
+      visible = "1";
+      helpTag = "0";
+      bitmap = "common/ui/dialog.png";
+      wrap = "0";
+
+      new GuiMLTextCtrl(ExitGameText) {
+         profile = "GuiComic24Profile";
+         horizSizing = "center";
+         vertSizing = "bottom";
+         position = "95 46";
+         extent = "198 23";
+         minExtent = "8 8";
+         visible = "1";
+         helpTag = "0";
+         lineSpacing = "2";
+         allowColorChars = "0";
+         maxChars = "-1";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "top";
+         position = "47 107";
+         extent = "88 52";
+         minExtent = "8 8";
+         visible = "1";
+         command = "Canvas.popDialog(ExitGameDlg); resumeGame(); disconnect();";
+         accelerator = "return";
+         helpTag = "0";
+         text = "YES";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "common/ui/yes";
+            simpleStyle = "0";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "top";
+         position = "151 107";
+         extent = "83 55";
+         minExtent = "8 8";
+         visible = "1";
+         command = "Canvas.popDialog(ExitGameDlg); resumeGame();";
+         accelerator = "escape";
+         helpTag = "0";
+         text = "NO";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "common/ui/no";
+            simpleStyle = "0";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "top";
+         position = "249 107";
+         extent = "103 56";
+         minExtent = "8 8";
+         visible = "1";
+         command = "Canvas.popDialog(ExitGameDlg); resumeGame(); restartLevel();";
+         helpTag = "0";
+         text = "button";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "common/ui/restart";
+            simpleStyle = "0";
+      };
+   };
+};
+//--- OBJECT WRITE END ---

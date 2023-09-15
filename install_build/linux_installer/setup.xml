@@ -1,0 +1,18 @@
+<?xml version="1.0" standalone="yes"?>
+<install product="TorqueDemo" desc="TorqueDemo" version="1000" uninstall="uninstall" binarypath="/usr/bin" 
+         promptbinaries="yes" update_url="http://www.lowestplane.org/torque/release_updates/updates.txt" express="no">
+  <readme>
+    ReadMe.txt
+  </readme>
+  <eula>
+   license.txt
+  </eula>
+  <option install="true" required="true">
+    Base Install
+    <binary arch="any" libc="any" symlink="torquedemo" name="Torque Demo" icon="icon.xpm" play="yes">demo.sh</binary>
+    <files>
+      icon.xpm
+      TarBall.tar.gz
+    </files>
+  </option>
+</install>

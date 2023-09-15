@@ -1,0 +1,182 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiChunkedBitmapCtrl(MainMenuGui) {
+   profile = "GuiContentProfile";
+   horizSizing = "width";
+   vertSizing = "height";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+   helpTag = "0";
+   bitmap = "./background.jpg";
+   useVariable = "0";
+   tile = "0";
+
+   new GuiTextCtrl(HomeVersion) {
+      profile = "GuiTextProfile";
+      horizSizing = "center";
+      vertSizing = "top";
+      position = "289 457";
+      extent = "62 18";
+      minExtent = "8 8";
+      visible = "1";
+      helpTag = "0";
+      text = "Version:";
+      maxLength = "255";
+   };
+   new GuiBitmapCtrl() {
+      profile = "GuiDefaultProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "145 1";
+      extent = "349 477";
+      minExtent = "8 8";
+      visible = "1";
+      helpTag = "0";
+      bitmap = "./home/homeGui.png";
+      wrap = "0";
+
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "50 113";
+         extent = "270 95";
+         minExtent = "8 8";
+         visible = "1";
+         command = "StopDemoTimer(); Canvas.setContent(playMissionGui);";
+         helpTag = "0";
+         text = "play";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./home/play";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "59 200";
+         extent = "242 84";
+         minExtent = "8 8";
+         visible = "1";
+         command = "StopDemoTimer(); Canvas.setContent(HelpCreditsGui);";
+         helpTag = "0";
+         text = "highscore";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./home/help";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "55 279";
+         extent = "253 83";
+         minExtent = "8 8";
+         visible = "1";
+         command = "StopDemoTimer(); Canvas.setContent(optionsDlg);";
+         helpTag = "0";
+         text = "options";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./home/options";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "82 358";
+         extent = "203 88";
+         minExtent = "8 8";
+         visible = "1";
+         command = "MainMenuQuit();";
+         helpTag = "0";
+         text = "exit";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./home/exit";
+      };
+   };
+   new GuiBitmapButtonCtrl(MOTDButton) {
+      profile = "GuiButtonProfile";
+      horizSizing = "left";
+      vertSizing = "top";
+      position = "529 387";
+      extent = "106 85";
+      minExtent = "8 8";
+      visible = "1";
+      command = "StopDemoTimer(); showMotd();";
+      helpTag = "0";
+      text = "play";
+      groupNum = "-1";
+      buttonType = "PushButton";
+      bitmap = "./motd/motd_buttn";
+   };
+};
+//--- OBJECT WRITE END ---
+
+function MainMenuQuit()
+{
+   quit();
+}
+
+function MainMenuGui::onWake()
+{
+   if($noMotdOrVersionCheck)
+   {
+      MOTDButton.setVisible(false);
+      HomeVersion.setText("");
+   }
+   else
+   {
+      HomeVersion.setText("Version " @ $THIS_VERSION);
+      Version::check();
+      checkMOTDBlink();
+   }
+   StartDemoTimer();
+   buildDemoList();
+}
+
+function StartDemoTimer()
+{
+   $LastInputEventTime = getSimTime();
+   $DemoTimerEvent = schedule(1000, 0, "checkDemoPlay");
+}
+
+function checkDemoPlay()
+{
+   if($LastInputEventTime + 10000 < getSimTime())
+      playNextDemo();
+   else
+      $DemoTimerEvent = schedule(1000, 0, "checkDemoPlay");
+}
+
+function StopDemoTimer()
+{
+   cancel($DemoTimerEvent);
+}
+
+function playNextDemo()
+{
+   if($NumDemoFiles != 0)
+   {
+      playDemo($DemoFile[$NextDemoFile]);
+      $NextDemoFile++;
+      if($NextDemoFile >= $NumDemoFiles)
+         $NextDemoFile = 0;
+   }
+}
+
+function buildDemoList()
+{
+   if($NumDemoFiles != 0)
+      return;
+
+   $NumDemoFiles = 0;
+   $NextDemoFile = 0;
+   for(%file = findFirstFile("*.rec"); %file !$= ""; %file = findNextFile("*.rec"))
+   {
+      $DemoFile[$NumDemoFiles] = %file;
+      $NumDemoFiles++;
+   }
+}
