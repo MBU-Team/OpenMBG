@@ -700,16 +700,16 @@ void Platform::process()
    // if there's no window, we sleep 1, otherwise we sleep 0
    if(!Game->isJournalReading())
       Sleep(gWindowCreated ? 0 : 1); // give others some process time if necessary...
-   HWND window = GetForegroundWindow();
-   if (window && gWindowCreated)
-   {
-      // check to see if we are in the foreground or not
-      // if not Sleep for 100ms or until a Win32 message/input is recieved
-      DWORD foregroundProcessId;
-      GetWindowThreadProcessId(window, &foregroundProcessId);
-      if (foregroundProcessId != winState.processId)
-         MsgWaitForMultipleObjects(0, NULL, false, 100, QS_ALLINPUT);
-   }
+   //HWND window = GetForegroundWindow();
+   //if (window && gWindowCreated)
+   //{
+   //   // check to see if we are in the foreground or not
+   //   // if not Sleep for 100ms or until a Win32 message/input is recieved
+   //   DWORD foregroundProcessId;
+   //   GetWindowThreadProcessId(window, &foregroundProcessId);
+   //   if (foregroundProcessId != winState.processId)
+   //      MsgWaitForMultipleObjects(0, NULL, false, 100, QS_ALLINPUT);
+   //}
 
    Input::process();
 }
@@ -1094,10 +1094,13 @@ class WinTimer
       S64 mPerfCountCurrent;
       S64 mPerfCountNext;
       S64 mFrequency;
+      F64 mPerfCountRemainderCurrent;
+      F64 mPerfCountRemainderNext;
       bool mUsingPerfCounter;
    public:
       WinTimer()
       {
+         mPerfCountRemainderCurrent = 0.0f;
          mUsingPerfCounter = QueryPerformanceFrequency((LARGE_INTEGER *) &mFrequency);
          if(mUsingPerfCounter)
             mUsingPerfCounter = QueryPerformanceCounter((LARGE_INTEGER *) &mPerfCountCurrent);
@@ -1109,7 +1112,10 @@ class WinTimer
          if(mUsingPerfCounter)
          {
             QueryPerformanceCounter( (LARGE_INTEGER *) &mPerfCountNext);
-            U32 elapsed = (U32) (1000.0f * F64(mPerfCountNext - mPerfCountCurrent) / F64(mFrequency));
+            F64 elapsedF64 = (1000.0 * F64(mPerfCountNext - mPerfCountCurrent) / F64(mFrequency));
+            elapsedF64 += mPerfCountRemainderCurrent;
+            U32 elapsed = mFloor(elapsedF64);
+            mPerfCountRemainderNext = elapsedF64 - F64(elapsed);
             return elapsed;
          }
          else
@@ -1122,6 +1128,7 @@ class WinTimer
       {
          mTickCountCurrent = mTickCountNext;
          mPerfCountCurrent = mPerfCountNext;
+         mPerfCountRemainderCurrent = mPerfCountRemainderNext;
       }
 };
 
@@ -1219,11 +1226,11 @@ void TimeManager::process()
    TimeEvent event;
    event.elapsedTime = gTimer.getElapsedMS();
 
-   //if(event.elapsedTime > 2)
-   //{
+   //if(event.elapsedTime > 1)
+   {
       gTimer.advance();
       Game->postEvent(event);
-   //}
+   }
 }
 
 /*

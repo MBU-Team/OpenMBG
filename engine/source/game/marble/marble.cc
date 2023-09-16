@@ -394,7 +394,7 @@ void Marble::initPersistFields()
 
 void Marble::applyImpulse(const Point3F& pos, const Point3F& vec)
 {
-    setVelocityD(vec / getMass() + mVelocity);
+    setVelocityD(vec / mMass + mVelocity);
 }
 
 void Marble::trailEmitter(U32 timeDelta)
@@ -1784,7 +1784,7 @@ Point3D Marble::getExternalForces(const Move* move, F64 timeStep)
             obj->getForce(position, &force);
     }
 
-    ret += force / getMass();
+    ret += force / mMass;
 
     S32 forceObjectCount = 0;
 
@@ -1807,7 +1807,7 @@ Point3D Marble::getExternalForces(const Move* move, F64 timeStep)
         {
             m_point3F_normalize(contactNormal);
 
-            F32 contactForceOverMass = contactForce / getMass();
+            F32 contactForceOverMass = contactForce / mMass;
 
             F32 thing = mDot((Point3F)mVelocity, contactNormal);
             if (contactForceOverMass > thing)
@@ -2431,7 +2431,7 @@ ConsoleFunction(setGravityDir, void, 2, 3, "(gravity, snap)")
     Point3F xvec;
     Point3F yvec;
     Point3F zvec;
-    dSscanf(argv[2], "%g %g %g %g %g %g %g %g %g", &xvec.x, &xvec.y, &xvec.z, &yvec.x, &yvec.y, &yvec.z, &zvec.x, &zvec.y, &zvec.z);
+    dSscanf(argv[1], "%g %g %g %g %g %g %g %g %g", &xvec.x, &xvec.y, &xvec.z, &yvec.x, &yvec.y, &yvec.z, &zvec.x, &zvec.y, &zvec.z);
 
     gGlobalGravityDir = zvec;
 
