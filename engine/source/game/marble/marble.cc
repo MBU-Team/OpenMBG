@@ -2421,3 +2421,159 @@ void Marble::controlPrePacketSend(GameConnection* conn)
     mue->mCollisions = mMaterialCollisions;
     conn->postNetEvent(mue);
 }
+
+ConsoleFunction(setGravityDir, void, 2, 3, "(gravity, snap)")
+{
+    Point3F xvec;
+    Point3F yvec;
+    Point3F zvec;
+    dSscanf(argv[2], "%g %g %g %g %g %g %g %g %g", &xvec.x, &xvec.y, &xvec.z, &yvec.x, &yvec.y, &yvec.z, &zvec.x, &zvec.y, &zvec.z);
+
+    gGlobalGravityDir = zvec;
+
+    MatrixF oldMat = gGlobalGravityMatrix;
+    gGlobalGravityMatrix.setColumn(0, xvec);
+	gGlobalGravityMatrix.setColumn(1, -yvec);
+	gGlobalGravityMatrix.setColumn(2, -zvec);
+    
+    Point3F up = -zvec;
+    
+    if (argc == 3 && dAtob(argv[2]))
+    {
+        gPrevGravityDir = gGlobalGravityDir;
+        gPrevGravityMatrix = gGlobalGravityMatrix;
+        gDefaultGravityTransform = gGlobalGravityMatrix;
+        gInterpGravityDir = false;
+        return;
+    }
+   
+    Point3F oldUp;
+    Point3D rot;
+    oldMat.getColumn(2, &oldUp);
+	mCross(up, oldUp, &rot);
+    float len = rot.len();
+    if (len > 0.1)
+    {
+        if (len > 1.0f)
+            len = 1.0f;
+        if (len < -1.0f)
+            len = -1.0f;
+       m_point3D_normalize_f(rot, asinf(len));
+       gGlobalGravityMatrix = oldMat;
+       rotateMatrix(gGlobalGravityMatrix, rot);
+       gGlobalGravityMatrix.setColumn(2, up);
+    }
+    else
+    {
+        Point3F oldX;;
+        oldMat.getColumn(0, &oldX);
+        gGlobalGravityMatrix.setColumn(0, oldX);
+        gGlobalGravityMatrix.setColumn(1, mCross(up, oldX));
+    }
+    if (!gInterpGravityDir)
+    {
+        gPrevGravityMatrix = oldMat;
+    }
+    gStartGravityQuat.set(gPrevGravityMatrix);
+	gEndGravityQuat.set(gGlobalGravityMatrix);
+    gInterpCurrentTime = 0;
+    gInterpTotalTime = 325;
+    gInterpGravityDir = true;
+}
+
+ConsoleFunction(getGravityDir, const char*, 1, 1, "()")
+{
+    char* retBuf = Con::getReturnBuffer(256);
+    dSprintf(retBuf, 256, "%g %g %g", gGlobalGravityDir.x, gGlobalGravityDir.y, gGlobalGravityDir.z);
+
+    return retBuf;
+}
+
+
+ConsoleMethod(Marble, setOOB, void, 3, 3, "(oob)")
+{
+    object->setOOB(dAtob(argv[2]));
+}
+
+ConsoleMethod(Marble, getPosition, const char*, 2, 2, "()")
+{
+    static char buffer[100];
+    Point3F pos = object->getPosition();
+    dSprintf(buffer, 100, "%f %f %f", pos.x, pos.y, pos.z);
+
+    return buffer;
+}
+
+ConsoleMethod(Marble, doPowerUp, void, 3, 3, "(powerup)")
+{
+    F32 id = dAtof(argv[2]);
+    Con::printf("Did powerup! - %g", id);
+    object->doPowerUp(id);
+}
+
+ConsoleMethod(Marble, setPowerUpId, void, 3, 4, "(id)")
+{
+    bool reset = false;
+    if (argc > 3)
+        reset = dAtob(argv[3]);
+
+    object->setPowerUpId(dAtoi(argv[2]), reset);
+}
+
+ConsoleMethod(Marble, getPad, S32, 2, 2, "()")
+{
+    SceneObject* pad = object->getPad();
+    if (pad)
+        return pad->getId();
+
+    return 0;
+}
+
+ConsoleMethod(Marble, setMode, void, 3, 3, "(mode)")
+{
+    char* modeList[3];
+    modeList[0] = "Normal";
+    modeList[1] = "Victory";
+    modeList[2] = "Start";
+    for (int i = 0; i < 3; i++)
+    {
+        if (dStricmp(modeList[i], argv[2]))
+        {
+            object->setMode(i);
+            return;
+        }
+    }
+    Con::printf("Marble:: Unkonwn marble mode: %s", argv[2]);
+    object->setMode(0);
+}
+
+ConsoleMethod(Marble, setPad, void, 3, 3, "(pad)")
+{
+    U32 padId = dAtoi(argv[2]);
+    if (!padId)
+    {
+        object->setPad(0);
+        return;
+    }
+
+    SceneObject* pad;
+    if (Sim::findObject(padId, pad))
+        object->setPad(pad);
+    else
+        Con::errorf("Marble::setPad: Not a SceneObject");
+}
+
+
+ConsoleMethod(Marble, setPosition, void, 4, 4, "(transform, mouseY)")
+{
+    Point3F posf;
+    AngAxisF angAxis;
+
+    // Without this, if an axis is not provided, these are NaN
+    angAxis.axis.set(0, 0, 0);
+    angAxis.angle = 0;
+
+    dSscanf(argv[2], "%f %f %f %f %f %f %f", &posf.x, &posf.y, &posf.z, &angAxis.axis.x, &angAxis.axis.y, &angAxis.axis.z, &angAxis.angle);
+
+    object->setPosition(Point3D(posf.x, posf.y, posf.z), angAxis, dAtof(argv[3]));
+}

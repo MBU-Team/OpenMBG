@@ -106,27 +106,9 @@ private:
         Move move;
     };
 
-    struct EndPadEffect
-    {
-        F32 effectTime;
-        Point3F lastCamFocus;
-    };
-
-    struct ActiveParams
-    {
-        float airAccel;
-        float gravityMod;
-        float bounce;
-        float repulseMax;
-        float repulseDist;
-        float massScale;
-        float sizeScale;
-    };
-
     struct PowerUpState
     {
         bool active;
-        char pad[3];
         F32 endTime;
         ParticleEmitter* emitter;
     };
@@ -219,6 +201,7 @@ public:
     void updateRollSound(F32 contactPct, F32 slipAmount);
     void playBounceSound(Marble::Contact& contactSurface, F64 contactVel);
     void setPad(SceneObject* obj);
+    inline SceneObject* getPad() { return mPadPtr; }
     void advanceTime(F32 dt);
     void doPowerUp(S32 powerUpId);
     void setPowerUpId(U32 id, bool reset);
