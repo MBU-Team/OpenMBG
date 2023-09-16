@@ -72,6 +72,8 @@ class SceneGraph
    void removeObjectFromScene(SceneObject*);
    void zoneInsert(SceneObject*);
    void zoneRemove(SceneObject*);
+   void addShadowOccluder(SceneObject*);
+   void removeShadowOccluder(SceneObject*);
    /// @}
 
    // 

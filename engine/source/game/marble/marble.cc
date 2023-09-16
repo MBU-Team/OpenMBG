@@ -93,6 +93,7 @@ bool Marble::onAdd() {
     if (!Parent::onAdd())
         return false;
     addToScene();
+    mSceneManager->addShadowOccluder(this);
     if (mNetFlags.test(2))
     {
         mDataBlock->rollHardSound->mDescriptionObject->mDescription.mVolume = 0;
@@ -291,6 +292,7 @@ bool Marble::onNewDataBlock(GameBaseData* dptr)
 
 void Marble::onRemove() {
     mSceneManager->removeObjectFromScene(this);
+    mSceneManager->removeShadowOccluder(this);
     if (mRollHandle)
         alxStop(mRollHandle);
     if (mSlipHandle)

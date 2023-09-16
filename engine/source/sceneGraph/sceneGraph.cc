@@ -1007,6 +1007,14 @@ void SceneGraph::zoneRemove(SceneObject* obj)
    obj->mZoneRefHead = NULL;
 }
 
+void SceneGraph::addShadowOccluder(SceneObject*)
+{
+}
+
+void SceneGraph::removeShadowOccluder(SceneObject*)
+{
+}
+
 void SceneGraph::setFogColor(ColorF color)
 {
    mFogColor = color;

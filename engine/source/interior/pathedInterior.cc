@@ -139,9 +139,9 @@ bool PathedInterior::onAdd()
       Point3F initialPos;
       mBaseTransform.getColumn(3, &initialPos);
       Point3F pathPos;
-      //gClientPathManager->getPathPosition(mPathKey, 0, pathPos);
+      gClientPathManager->getPathPosition(mPathKey, 0, pathPos);
       mOffset = initialPos - pathPos;
-      //gClientPathManager->getPathPosition(mPathKey, mCurrentPosition, pathPos);
+      gClientPathManager->getPathPosition(mPathKey, mCurrentPosition, pathPos);
       MatrixF mat = getTransform();
       mat.setColumn(3, pathPos + mOffset);
       setTransform(mat);
@@ -156,11 +156,13 @@ bool PathedInterior::onSceneAdd(SceneGraph *g)
 {
    if(!Parent::onSceneAdd(g))
       return false;
+   mSceneManager->addShadowOccluder(this);
    return true;
 }
 
 void PathedInterior::onSceneRemove()
 {
+   mSceneManager->removeShadowOccluder(this);
    Parent::onSceneRemove();
 }
 
@@ -447,7 +449,7 @@ void PathedInterior::computeNextPathStep(U32 timeDelta)
       Point3F newPoint = Point3F(0,0,0); //BJGNOTE - this shuts up the compiler, three lines down will actually set it.
       MatrixF mat = getTransform();
       mat.getColumn(3, &curPoint);
-      //gClientPathManager->getPathPosition(mPathKey, mCurrentPosition, newPoint);
+      gClientPathManager->getPathPosition(mPathKey, mCurrentPosition, newPoint);
       newPoint += mOffset;
 
       Point3F displaceDelta = newPoint - curPoint;
@@ -517,6 +519,14 @@ void PathedInterior::advance(F64 timeDelta)
    mat.setColumn(3, newPoint);// + mOffset);
    setTransform(mat);
    setRenderTransform(mat);
+}
+
+void PathedInterior::light()
+{
+    if (!mHasComputedNormals)
+    {
+        // computeNormals
+    }
 }
 
 U32 PathedInterior::getPathKey()

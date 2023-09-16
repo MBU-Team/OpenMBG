@@ -89,6 +89,7 @@ private:
    F64                        mCurrentPosition;
    S32                        mTargetPosition;
    Point3F                    mCurrentVelocity;
+   bool                       mHasComputedNormals = false;
 
    PathedInterior *mNextClientPI;
 
@@ -130,6 +131,7 @@ private:
    Box3F getExtrudedBox() { return mExtrudedBox; }
    Point3F getVelocity();
    void advance(F64 timeDelta);
+   void light();
 
    U32  packUpdate(NetConnection *conn, U32 mask, BitStream* stream);
    void unpackUpdate(NetConnection *conn, BitStream* stream);

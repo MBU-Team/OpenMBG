@@ -582,6 +582,8 @@ bool InteriorInstance::onSceneAdd(SceneGraph* pGraph)
    if (Parent::onSceneAdd(pGraph) == false)
       return false;
 
+   mSceneManager->addShadowOccluder(this);
+
    if (mInteriorRes->getDetailLevel(0)->mZones.size() > 1) {
       AssertWarn(getNumCurrZones() == 1, "There should be one and only one zone for an interior that manages zones");
       mSceneManager->registerZones(this, (mInteriorRes->getDetailLevel(0)->mZones.size() - 1));
@@ -596,6 +598,8 @@ void InteriorInstance::onSceneRemove()
 {
    AssertFatal(mInteriorRes, "Error, should not have been added to the scene if there's no interior!");
    
+   mSceneManager->removeShadowOccluder(this);
+
    if (isManagingZones())
       mSceneManager->unregisterZones(this);
 

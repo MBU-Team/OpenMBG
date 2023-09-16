@@ -253,8 +253,8 @@ void PathManager::transmitPath(const U32 id)
 
 void PathManager::getPathPosition(const U32 id,
                                   const F64 msPosition,
-                                  Point3F&  rPosition,
-                                  QuatF &rotation)
+                                  Point3F&  rPosition)
+                                  // QuatF &rotation)
 {
    AssertFatal(isValidPath(id), "Error, this is not a valid path!");
 
@@ -299,7 +299,7 @@ void PathManager::getPathPosition(const U32 id,
       rPosition.y = mCatmullrom(interp, p0.y, p1.y, p2.y, p3.y);
       rPosition.z = mCatmullrom(interp, p0.z, p1.z, p2.z, p3.z);
    }
-   rotation.interpolate( mPaths[id]->rotations[startNode], mPaths[id]->rotations[endNode], interp );
+   // rotation.interpolate( mPaths[id]->rotations[startNode], mPaths[id]->rotations[endNode], interp );
 }
 
 U32 PathManager::getPathTotalTime(const U32 id) const
