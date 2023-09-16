@@ -343,6 +343,13 @@ void GameConnection::setControlObject(ShapeBase *obj)
    // Okay, set our control object.
    mControlObject = obj;
    setScopeObject(mControlObject);
+
+   if (isServerConnection())
+   {
+       F32 fov = mControlObject->getDefaultCameraFov();
+       GameSetCameraFov(fov);
+   }
+
 }
 
 void GameConnection::setCameraObject(ShapeBase *obj)
@@ -365,9 +372,9 @@ ShapeBase* GameConnection::getCameraObject()
 {
    // If there is no camera object, or if we're first person, return
    // the control object.
-   if( !mControlObject.isNull() && (mCameraObject.isNull() || mFirstPerson))
+   //if( !mControlObject.isNull() && (mCameraObject.isNull() || mFirstPerson))
       return mControlObject;
-   return  mCameraObject;
+   //return  mCameraObject;
 }
   
 static S32 sChaseQueueSize = 0;
@@ -377,7 +384,7 @@ static S32 sChaseQueueTail = 0;
 
 bool GameConnection::getControlCameraTransform(F32 dt, MatrixF* mat)
 {
-   ShapeBase* obj = getCameraObject();
+   ShapeBase* obj = mControlObject;
    if(!obj)
       return false;
    
@@ -590,10 +597,6 @@ void GameConnection::writeDemoStartBlock(ResizeBitStream *stream)
    stream->write(idx);
    if(mControlObject)
       mControlObject->writePacketData(this, stream);
-   idx = mCameraObject ? getGhostIndex(mCameraObject) : -1;
-   stream->write(idx);
-   if(mCameraObject && mCameraObject != mControlObject)
-      mCameraObject->writePacketData(this, stream);
    mLastControlRequestTime = Platform::getVirtualMilliseconds();
 }
 
@@ -656,17 +659,6 @@ bool GameConnection::readDemoStartBlock(BitStream *stream)
       setControlObject(obj);
       obj->readPacketData(this, stream);
    }
-
-   // Get the camera object, and read it in if it's different
-   S32 idx2;
-   stream->read(&idx2);
-   obj = 0;
-   if(idx2 != -1 && idx2 != idx)
-   {
-      obj = dynamic_cast<ShapeBase*>(resolveGhost(idx2));
-      setCameraObject(obj);
-      obj->readPacketData(this, stream);
-   }
    return ret;
 }
 
@@ -680,6 +672,59 @@ void GameConnection::demoPlaybackComplete()
 
 //----------------------------------------------------------------------------
 
+void GameConnection::readControlObjectState(BitStream* bstream)
+{
+    if (isServerConnection())
+    {
+        mLastMoveAck = bstream->readInt(32);
+        if (mLastMoveAck < mFirstMoveIndex)
+           mLastMoveAck = mFirstMoveIndex;
+        if(mLastMoveAck > mLastClientMove)
+           mLastClientMove = mLastMoveAck;
+        while(mFirstMoveIndex < mLastMoveAck)
+        {
+           AssertFatal(mMoveList.size(), "Popping off too many moves!");
+           mMoveList.pop_front();
+           mFirstMoveIndex++;
+        }
+
+        if (bstream->readFlag())
+        {
+           if(bstream->readFlag())
+           {
+              // the control object is dirty...
+              // so we get an update:
+              mLastClientMove = mLastMoveAck;
+              bool callScript = false;
+              if(mControlObject.isNull())
+                 callScript = true;
+                 
+              S32 gIndex = bstream->readInt(NetConnection::GhostIdBitSize);
+              ShapeBase* obj = static_cast<ShapeBase*>(resolveGhost(gIndex));
+              if (mControlObject != obj)
+                 setControlObject(obj);
+              obj->readPacketData(this, bstream);
+              
+              if(callScript)
+                 Con::executef(this, 2, "initialControlSet");
+           }
+           else
+           {
+              // read out the compression point
+              Point3F pos;
+              bstream->read(&pos.x);
+              bstream->read(&pos.y);
+              bstream->read(&pos.z);
+              bstream->setCompressionPoint(pos);
+           }
+        }
+    }
+    else
+    {
+        moveReadPacket(bstream);
+    }
+}
+
 void GameConnection::readPacket(BitStream *bstream)
 {
    char stringBuf[256];
@@ -687,20 +732,9 @@ void GameConnection::readPacket(BitStream *bstream)
    bstream->setStringBuffer(stringBuf);
 
    bstream->clearCompressionPoint();
+   readControlObjectState(bstream);
    if (isServerConnection())
    {
-      mLastMoveAck = bstream->readInt(32);
-      if (mLastMoveAck < mFirstMoveIndex)
-         mLastMoveAck = mFirstMoveIndex;
-      if(mLastMoveAck > mLastClientMove)
-         mLastClientMove = mLastMoveAck;
-      while(mFirstMoveIndex < mLastMoveAck)
-      {
-         AssertFatal(mMoveList.size(), "Popping off too many moves!");
-         mMoveList.pop_front();
-         mFirstMoveIndex++;
-      }
-
       mDamageFlash = 0;
       mWhiteOut = 0;
       if(bstream->readFlag())
@@ -710,46 +744,16 @@ void GameConnection::readPacket(BitStream *bstream)
          if(bstream->readFlag())
             mWhiteOut = bstream->readFloat(7) * 1.5;
       }
-         
-      if (bstream->readFlag())
-      {
-         if(bstream->readFlag())
-         {
-            // the control object is dirty...
-            // so we get an update:
-            mLastClientMove = mLastMoveAck;
-            bool callScript = false;
-            if(mControlObject.isNull())
-               callScript = true;
-               
-            S32 gIndex = bstream->readInt(NetConnection::GhostIdBitSize);
-            ShapeBase* obj = static_cast<ShapeBase*>(resolveGhost(gIndex));
-            if (mControlObject != obj)
-               setControlObject(obj);
-            obj->readPacketData(this, bstream);
-            
-            if(callScript)
-               Con::executef(this, 2, "initialControlSet");
-         }
-         else
-         {
-            // read out the compression point
-            Point3F pos;
-            bstream->read(&pos.x);
-            bstream->read(&pos.y);
-            bstream->read(&pos.z);
-            bstream->setCompressionPoint(pos);
-         }
-      }
+        
 
-      if (bstream->readFlag())
-      {
-            S32 gIndex = bstream->readInt(10);
-            ShapeBase* obj = static_cast<ShapeBase*>(resolveGhost(gIndex));
-            setCameraObject(obj);
-      }
-      else
-         setCameraObject(0);
+      //if (bstream->readFlag())
+      //{
+      //      S32 gIndex = bstream->readInt(10);
+      //      ShapeBase* obj = static_cast<ShapeBase*>(resolveGhost(gIndex));
+      //      setCameraObject(obj);
+      //}
+      //else
+      //   setCameraObject(0);
 
       // server forcing a fov change?
       if(bstream->readFlag())
@@ -774,8 +778,8 @@ void GameConnection::readPacket(BitStream *bstream)
       else
          mCameraPos = 1;
 
-      bstream->read(&mLastControlObjectChecksum);
-      moveReadPacket(bstream);
+      // bstream->read(&mLastControlObjectChecksum);
+      // moveReadPacket(bstream);
 
       // check fov change.. 1degree granularity on server
       if(bstream->readFlag())
@@ -794,13 +798,45 @@ void GameConnection::readPacket(BitStream *bstream)
    bstream->setStringBuffer(NULL);
 }
 
+void GameConnection::writeControlObjectState(BitStream* bstream, PacketNotify* note)
+{
+    if (isServerConnection())
+    {
+        bstream->writeFlag(mCameraPos == 0);
+        U32 sum = 0;
+        if (mControlObject)
+        {
+            mControlObject->interpolateTick(0);
+            sum = mControlObject->getPacketDataChecksum(this);
+            mControlObject->interpolateTick(gClientProcessList.getLastInterpDelta());
+        }
+        // if we're recording, we want to make sure that we get periodic updates of the 
+        // control object "just in case" - ie if the math copro is different between the
+        // recording machine (SIMD vs FPU), we get periodic corrections
+
+        if (isRecording())
+        {
+            U32 currentTime = Platform::getVirtualMilliseconds();
+            if (currentTime - mLastControlRequestTime > ControlRequestTime)
+            {
+                mLastControlRequestTime = currentTime;
+                sum = 0;
+            }
+        }
+        bstream->write(sum);
+
+        moveWritePacket(bstream);
+    }
+    bstream->writeInt(mLastMoveAck - mMoveList.size(), 32);
+}
+
 void GameConnection::writePacket(BitStream *bstream, PacketNotify *note)
 {
    char stringBuf[256];
    bstream->clearCompressionPoint();
    stringBuf[0] = 0;
    bstream->setStringBuffer(stringBuf);
-                                                   
+
    GamePacketNotify *gnote = (GamePacketNotify *) note;
 
    U32 startPos = bstream->getCurPos();
@@ -916,7 +952,6 @@ void GameConnection::writePacket(BitStream *bstream, PacketNotify *note)
    bstream->clearCompressionPoint();
    bstream->setStringBuffer(NULL);
 }
-
 
 void GameConnection::detectLag()
 {

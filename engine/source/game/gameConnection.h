@@ -187,7 +187,9 @@ protected:
    /// @{
 
    void readPacket      (BitStream *bstream);
+   void readControlObjectState(BitStream* bstream);
    void writePacket     (BitStream *bstream, PacketNotify *note);
+   void writeControlObjectState(BitStream* bstream, PacketNotify* note);
    void packetReceived  (PacketNotify *note);
    void packetDropped   (PacketNotify *note);
    void connectionError (const char *errorString);
