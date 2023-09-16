@@ -40,6 +40,7 @@
 #ifndef _INTERIORLMMANAGER_H_
 #include "interior/interiorLMManager.h"
 #endif
+#include "interiorSimpleMesh.h"
 
 
 //-------------------------------------- Forward declarations
@@ -300,6 +301,7 @@ class Interior
 
   private:
    static const U32 smFileVersion;
+   void readCompressedVector(Stream& stream, Vector<U32>& vec);
    bool writePlaneVector(Stream&) const;
    bool readPlaneVector(Stream&);
    bool readLMapTexGen(Stream&, PlaneF&, PlaneF&);
@@ -366,6 +368,9 @@ class Interior
       
       U16 surfaceCount;
       U16 planeCount;
+      
+      U32 staticMeshStart;
+      U32 staticMeshCount;
 
       U16 flags;
       U16 zoneId;       // This is ephemeral, not persisted out.
@@ -402,6 +407,26 @@ class Interior
    const bool isSurfaceOutsideVisible(U32 surface) const;
       
   public:
+   struct TexMatrix
+   {
+       S32 T;
+       S32 N;
+       S32 B;
+       TexMatrix()
+           : T(-1),
+           N(-1),
+           B(-1)
+       {};
+   };
+   struct Edge
+   {
+       U32 vertex1;
+       U32 vertex2;
+       U32 normal1;
+       U32 normal2;
+       U32 face1;
+       U32 face2;
+   };
    struct TexGenPlanes {
       PlaneF planeX;
       PlaneF planeY;
@@ -430,6 +455,8 @@ class Interior
       U8  mapOffsetY;
       U8  mapSizeX;
       U8  mapSizeY;
+
+      bool unused;
    };
    struct NullSurface {
       U32 windingStart;
@@ -510,6 +537,8 @@ class Interior
       U32   polyListPointStart;
       U32   polyListStringStart;      
       U16   searchTag;
+
+      bool  staticMesh;
    };
 
    struct CoordBin {
@@ -524,6 +553,7 @@ class Interior
    LM_HANDLE getLMHandle() {return(mLMHandle);}
 
    // SceneLighting::InteriorProxy interface
+   bool readSurface(Stream&, Surface&, TexGenPlanes&, const bool);
    const Surface & getSurface(const U32 surface) const;
    const U32 getSurfaceCount() const;
    const U8 getNormalLMapIndex(const U32 surface) const;
@@ -536,6 +566,7 @@ class Interior
 
    //-------------------------------------- Instance Data Members
   private:
+   U32                     mFileVersion;
    U32                     mDetailLevel;
    U32                     mMinPixels;
    F32                     mAveTexGenLength;     // Set in Interior::read after loading the texgen planes.
@@ -546,6 +577,10 @@ class Interior
    Vector<ItrPaddedPoint>  mPoints;
    Vector<U8>              mPointVisibility;
    
+   Vector<Point3F>         mNormals;
+   Vector<TexMatrix>       mTexMatrices;
+   Vector<U32>             mTexMatIndices;
+
    ColorF                  mBaseAmbient;
    ColorF                  mAlarmAmbient;
 
@@ -573,12 +608,15 @@ class Interior
    Vector<NullSurface>     mNullSurfaces;
    Vector<U32>             mSolidLeafSurfaces;
 
+   Vector<Edge>            mEdges;
+
    // Portals and zones
    Vector<Zone>            mZones;
    Vector<U16>             mZonePlanes;
    Vector<U16>             mZoneSurfaces;
    Vector<U16>             mZonePortalList;
    Vector<Portal>          mPortals;
+   Vector<U32>             mZoneStaticMeshes;
 
    // Subobjects: Doors, translucencies, mirrors, etc.
    Vector<InteriorSubObject*> mSubObjects;
@@ -587,7 +625,10 @@ class Interior
    bool                    mHasAlarmState;
    U32                     mNumLightStateEntries;
 
+   Vector<U16> mNormalIndices;
+   
    Vector<GBitmap*>        mLightmaps;
+   Vector<GBitmap*>        mLightDirMaps;
    Vector<bool>            mLightmapKeep;
    Vector<U8>              mNormalLMapIndices;
    Vector<U8>              mAlarmLMapIndices;
@@ -629,6 +670,9 @@ class Interior
    Vector<PlaneF>          mVehiclePlanes;
    Vector<U32>             mVehicleWindings;
    Vector<TriFan>          mVehicleWindingIndices;
+
+   VectorPtr<InteriorSimpleMesh*> mStaticMeshes;
+   U32 mLightMapBorderSize;
    
    U16                     mSearchTag;
 
