@@ -615,8 +615,6 @@ void GameInit()
    collisionTest.consoleInit();
 }
 
-const U32 AudioUpdatePeriod = 125;  ///< milliseconds between audio updates.
-
 bool clientProcess(U32 timeDelta)
 {
    ShowTSShape::advanceTime(timeDelta);
@@ -639,17 +637,6 @@ bool clientProcess(U32 timeDelta)
    GameConnection* connection = GameConnection::getServerConnection();
    if(connection)
       connection->detectLag();
-
-   // alxUpdate is somewhat expensive and does not need to be updated constantly,
-   // though it does need to be updated in real time
-   static U32 lastAudioUpdate = 0;
-   U32 realTime = Platform::getRealMilliseconds();
-   if((realTime - lastAudioUpdate) >= AudioUpdatePeriod)
-   {
-      alxUpdate();
-      gAmbientAudioManager.update();
-      lastAudioUpdate = realTime;
-   }
    return ret;
 }
 

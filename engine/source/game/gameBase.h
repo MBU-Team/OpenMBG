@@ -335,6 +335,7 @@ class ProcessList
    SimTime mLastTick;
    SimTime mLastTime;
    SimTime mLastDelta;
+   Move* mNextMove;
    bool mIsServer;
    bool mDirty;
    static bool mDebugControlSync;
@@ -361,6 +362,7 @@ public:
 
    bool advanceServerTime(SimTime timeDelta);
    bool advanceClientTime(SimTime timeDelta);
+   void timeReset();
 
    /// @}
 };

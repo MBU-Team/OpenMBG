@@ -57,6 +57,8 @@
 #include "game/shapeBase.h"
 #include "game/objectTypes.h"
 #include "game/net/serverQuery.h"
+#include "game/ambientAudioManager.h"
+#include "game/gameConnection.h"
 
 #ifndef BUILD_TOOLS
 DemoGame GameObject;
@@ -276,6 +278,7 @@ static F32 gTimeScale = 1.0;
 static U32 gTimeAdvance = 0;
 static U32 gFrameSkip = 0;
 static U32 gFrameCount = 0;
+static bool gGamePaused = false;
 
 /// Initalize game, run main.cs startup script
 bool initGame()
@@ -632,65 +635,149 @@ void DemoGame::processConsoleEvent(ConsoleEvent *event)
    Sim::postCurrentEvent(Sim::getRootGroup(), new SimConsoleEvent(2, const_cast<const char**>(argv), false));
 }
 
+const U32 AudioUpdatePeriod = 125;  ///< milliseconds between audio updates.
+
+Move gFirstMove;
+Move gNextMove;
+
 /// Process a time event and update all sub-processes
 void DemoGame::processTimeEvent(TimeEvent *event)
 {
-   PROFILE_START(ProcessTimeEvent);
-   U32 elapsedTime = event->elapsedTime;
-   // cap the elapsed time to one second
-   // if it's more than that we're probably in a bad catch-up situation
+    U32 elapsedTime = event->elapsedTime;
+    // cap the elapsed time to one second
+    // if it's more than that we're probably in a bad catch-up situation
 
-   if(elapsedTime > 1024)
-      elapsedTime = 1024;
-   
-   U32 timeDelta;
-   
-   if(gTimeAdvance)
-      timeDelta = gTimeAdvance;
-   else
-      timeDelta = (U32) (elapsedTime * gTimeScale);
+    if (elapsedTime > 1024)
+        elapsedTime = 1024;
 
-   Platform::advanceTime(elapsedTime);
-   bool tickPass;
-   PROFILE_START(ServerProcess);
-   tickPass = serverProcess(timeDelta);
-   PROFILE_END();
-   PROFILE_START(ServerNetProcess);
-   // only send packets if a tick happened
-   if(tickPass)
-      GNet->processServer();
-   PROFILE_END();
-
-   PROFILE_START(SimAdvanceTime);
-   Sim::advanceTime(timeDelta);
-   PROFILE_END();
-
-   PROFILE_START(ClientProcess);
-   tickPass = clientProcess(timeDelta);
-   PROFILE_END();
-   PROFILE_START(ClientNetProcess);
-   if(tickPass)
-      GNet->processClient();
-   PROFILE_END();
-
-   if(Canvas && gDGLRender)
+   // alxUpdate is somewhat expensive and does not need to be updated constantly,
+    // though it does need to be updated in real time
+   static U32 lastAudioUpdate = 0;
+   U32 realTime = Platform::getRealMilliseconds();
+   if ((realTime - lastAudioUpdate) >= AudioUpdatePeriod)
    {
-      bool preRenderOnly = false;
-      if(gFrameSkip && gFrameCount % gFrameSkip)
-         preRenderOnly = true;
-
-      PROFILE_START(RenderFrame);
-      ShapeBase::incRenderFrame();
-      Canvas->renderFrame(preRenderOnly);
-      PROFILE_END();
-      gFrameCount++;
+       alxUpdate();
+       gAmbientAudioManager.update();
+       lastAudioUpdate = realTime;
    }
-   GNet->checkTimeouts();
-   fpsUpdate();
-   PROFILE_END();
+   if (!gGamePaused)
+   {
+       gFirstMove = gNextMove = NullMove;
+       if (NetConnection::getServerConnection() != NULL)
+       {
+           GameConnection* gc = dynamic_cast<GameConnection*>(NetConnection::getServerConnection());
+           if (gc)
+           {
+               gc->getNextMove(gFirstMove);
+               gc->getNextMove(gNextMove);
+           }
+       }
 
+       if (mDemoWriteStream)
+       {
+           static char writeBuffer[256];
+
+           BitStream bs(writeBuffer, 256);
+           bool areMovesEqual = gFirstMove.x == mLastMove.x
+               && gFirstMove.y == mLastMove.y
+               && gFirstMove.z == mLastMove.z
+               && gFirstMove.yaw == mLastMove.yaw
+               && gFirstMove.pitch == mLastMove.pitch
+               && gFirstMove.roll == mLastMove.roll
+               && (gFirstMove.freeLook > 0) == (mLastMove.freeLook > 0)
+               && gFirstMove.trigger[3] == mLastMove.trigger[3]
+               && gFirstMove.trigger[1] == mLastMove.trigger[1];
+           if (bs.writeFlag(!areMovesEqual))
+           {
+               mLastMove = gFirstMove;
+               mLastMove.pack(&bs);
+           }
+           areMovesEqual = gNextMove.x == mLastMove.x
+               && gNextMove.y == mLastMove.y
+               && gNextMove.z == mLastMove.z
+               && gNextMove.yaw == mLastMove.yaw
+               && gNextMove.pitch == mLastMove.pitch
+               && gNextMove.roll == mLastMove.roll
+               && (gNextMove.freeLook > 0) == (mLastMove.freeLook > 0)
+               && gNextMove.trigger[3] == mLastMove.trigger[3]
+               && gNextMove.trigger[1] == mLastMove.trigger[1];
+           if (bs.writeFlag(!areMovesEqual))
+           {
+               mLastMove = gNextMove;
+               mLastMove.pack(&bs);
+           }
+           bs.writeInt(elapsedTime, 10);
+           U8 size = bs.getPosition();
+           mDemoWriteStream->write(size);
+           mDemoWriteStream->write(size, writeBuffer);
+           dMemset(writeBuffer, 0, size);
+       }
+       if (mDemoReadStream)
+       {
+           static char readBuffer[256];
+
+           U32 demoDelta = mDemoTimeDelta;
+           while (elapsedTime > demoDelta)
+           {
+               elapsedTime -= demoDelta;
+               U8 size;
+               mDemoReadStream->read(&size);
+               mDemoReadStream->read(size, &readBuffer);
+               if (mDemoReadStream->getStatus() != Stream::Ok)
+               {
+                   if (mDemoReadStream)
+                       ResourceManager->closeStream(mDemoReadStream);
+                   mDemoReadStream = NULL;
+                   Con::executef(1, (char)"onDemoPlayDone");
+                   break;
+               }
+               BitStream bs(readBuffer, 256);
+               if (bs.readFlag())
+                   mCurrentMove.unpack(&bs);
+               gFirstMove = mCurrentMove;
+               if (bs.readFlag())
+                   mCurrentMove.unpack(&bs);
+               gNextMove = mCurrentMove;
+               U32 demoTime = bs.readInt(10);
+               processElapsedTime(demoTime);
+               mDemoTimeDelta = demoTime;
+               if (elapsedTime < mDemoTimeDelta)
+                   break;
+
+           }
+           mDemoTimeDelta -= elapsedTime;
+       }
+       else
+       {
+           processElapsedTime(elapsedTime);
+       }
+       GNet->checkTimeouts();
+   }
+   if (Canvas && gDGLRender)
+   {
+       bool preRenderOnly = false;
+       if (gFrameSkip && gFrameCount % gFrameSkip)
+           preRenderOnly = true;
+
+       PROFILE_START(RenderFrame);
+       ShapeBase::incRenderFrame();
+       Canvas->renderFrame(preRenderOnly);
+       PROFILE_END();
+       gFrameCount++;
+   }
+   fpsUpdate();
    // Update the console time
    Con::setFloatVariable("Sim::Time",F32(Platform::getVirtualMilliseconds()) / 1000);
+}
+
+void DemoGame::processElapsedTime(U32 elapsedTime)
+{
+    Platform::advanceTime(elapsedTime);
+    serverProcess(elapsedTime);
+    GNet->processServer();
+    Sim::advanceTime(elapsedTime);
+    clientProcess(elapsedTime);
+    GNet->processClient();
 }
 
 /// Re-activate the game from, say, a minimized state
@@ -724,16 +811,84 @@ void GameDeactivate( bool noRender )
 void DemoGame::textureKill()
 {
    TextureManager::makeZombie();
+   SimGroup* root = Sim::getRootGroup();
+   for (SimSetIterator itr(root); *itr; ++itr)
+   {
+       (*itr)->onVideoKill();
+   }
 }
 
 /// Reaquire all textures
 void DemoGame::textureResurrect()
 {
    TextureManager::resurrect();
+   SimGroup* root = Sim::getRootGroup();
+   for (SimSetIterator itr(root); *itr; ++itr)
+   {
+       (*itr)->onVideoResurrect();
+   }
 }
 
 /// Process recieved net-packets
 void DemoGame::processPacketReceiveEvent(PacketReceiveEvent * prEvent)
 {
    GNet->processPacketReceiveEvent(prEvent);
+}
+
+void DemoGame::playDemo(const char* path)
+{
+    Stream* demoStream = ResourceManager->openStream(path);
+    if (demoStream)
+    {
+        mDemoReadStream = demoStream;
+        
+        gClientProcessList.timeReset();
+        gServerProcessList.timeReset();
+        mCurrentMove = NullMove;
+        char misPath[256];
+        demoStream->readString(misPath);
+        Con::executef(2, "onDemoPlay", misPath);
+    }
+}
+
+void DemoGame::stopDemo()
+{
+    if (mDemoReadStream)
+        ResourceManager->closeStream(mDemoReadStream);
+    if (mDemoWriteStream)
+        ResourceManager->closeStream(mDemoWriteStream);
+    mDemoReadStream = NULL;
+    mDemoWriteStream = NULL;
+}
+
+void DemoGame::recordDemo(const char* path, const char* mispath)
+{
+    FileStream* fs = new FileStream();
+    if (ResourceManager->openFileForWrite(*fs, path))
+    {
+        mLastMove = NullMove;
+        mDemoWriteStream = fs;
+        gClientProcessList.timeReset();
+        gServerProcessList.timeReset();
+        mDemoWriteStream->writeString(mispath);
+    }
+}
+
+ConsoleFunction(playDemo, void, 2, 2, "playDemo(path)")
+{
+    char filePath[1024];
+    Con::expandScriptFilename(filePath, 1024, argv[1]);
+    GameObject.playDemo(filePath);
+}
+
+ConsoleFunction(recordDemo, void, 3, 3, "recordDemo(path)")
+{
+    char filePath[1024];
+    Con::expandScriptFilename(filePath, 1024, argv[1]);
+    GameObject.recordDemo(filePath, argv[2]);
+}
+
+ConsoleFunction(stopDemo, void, 1, 1, "stopDemo()")
+{
+    GameObject.stopDemo();
 }

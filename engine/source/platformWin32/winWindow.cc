@@ -1219,11 +1219,11 @@ void TimeManager::process()
    TimeEvent event;
    event.elapsedTime = gTimer.getElapsedMS();
 
-   if(event.elapsedTime > 2)
-   {
+   //if(event.elapsedTime > 2)
+   //{
       gTimer.advance();
       Game->postEvent(event);
-   }
+   //}
 }
 
 /*

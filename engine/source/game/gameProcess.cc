@@ -98,6 +98,9 @@ bool ProcessList::advanceServerTime(SimTime timeDelta)
 
 //----------------------------------------------------------------------------
 
+extern Move gFirstMove;
+extern Move gNextMove;
+
 bool ProcessList::advanceClientTime(SimTime timeDelta)
 {
    PROFILE_START(AdvanceClientTime);
@@ -124,6 +127,9 @@ bool ProcessList::advanceClientTime(SimTime timeDelta)
       if (connection->areMovesPending())
          control = connection->getControlObject();
    }
+
+   Move firstmove = gFirstMove;
+   Move nextmove = gNextMove;
 
    // If we are going to tick, or have moves pending for the 
    // control object, we need to reset everyone back to their
@@ -158,23 +164,23 @@ bool ProcessList::advanceClientTime(SimTime timeDelta)
                      return true;
                } while(blockType != GameConnection::BlockTypeMove);
             }
-            connection->collectMove(mLastTick);
          }
          advanceObjects();
+         mNextMove = &gNextMove;
       }
    }
-   else
-      if (control) {
-         // Sync up the control object with the latest client moves.
-         Move* movePtr;
-         U32 m = 0, numMoves;
-         connection->getMoveList(&movePtr, &numMoves);
-         while (m < numMoves)
-         {
-            control->processTick(&movePtr[m++]);
-         }
-         connection->clearMoves(m);
-      }
+   //else
+   //   if (control) {
+   //      // Sync up the control object with the latest client moves.
+   //      Move* movePtr;
+   //      U32 m = 0, numMoves;
+   //      connection->getMoveList(&movePtr, &numMoves);
+   //      while (m < numMoves)
+   //      {
+   //         control->processTick(&movePtr[m++]);
+   //      }
+   //      connection->clearMoves(m);
+   //   }
 
    mLastDelta = (TickMs - (targetTime & TickMask)) & TickMask;
    F32 dt = mLastDelta / F32(TickMs);
@@ -190,9 +196,21 @@ bool ProcessList::advanceClientTime(SimTime timeDelta)
          obj = obj->mProcessLink.next)
       obj->advanceTime(dt);
 
+   for (GameBase* obj = head.mProcessLink.next; obj != &head;
+       obj = obj->mProcessLink.next)
+       obj->advancePhysics(&firstmove, timeDelta);
+
+   mNextMove = NULL;
    mLastTime = targetTime;
    PROFILE_END();
    return tickCount != 0;
+}
+
+void ProcessList::timeReset()
+{
+    mLastTick = 0;
+    mLastTime = 0;
+    mLastDelta = 0;
 }
 
 
@@ -212,29 +230,8 @@ void ProcessList::advanceObjects()
       obj->plUnlink();
       obj->plLinkBefore(&head);
 
-      // Each object is either advanced a single tick, or if it's
-      // being controlled by a client, ticked once for each pending move.
-      if (obj->mTypeMask & ShapeBaseObjectType) {
-
-         ShapeBase* pSB = static_cast<ShapeBase*>(obj);
-         GameConnection* con = pSB->getControllingClient();
-
-         if (con && con->getControlObject() == pSB) {
-            Move* movePtr;
-            U32 m, numMoves;
-
-            con->getMoveList(&movePtr, &numMoves);
-
-            for (m = 0; m < numMoves && pSB->getControllingClient() == con; )
-               obj->processTick(&movePtr[m++]);
-
-            con->clearMoves(m);
-
-            continue;
-         }
-      }
       if (obj->mProcessTick)
-         obj->processTick(0);
+         obj->processTick(mNextMove);
    }
    PROFILE_END();
 }
