@@ -90,6 +90,8 @@ Marble::~Marble()
 }
 
 bool Marble::onAdd() {
+    if (!Parent::onAdd())
+        return false;
     addToScene();
     if (mNetFlags.test(2))
     {
