@@ -721,6 +721,7 @@ void GameConnection::readControlObjectState(BitStream* bstream)
     }
     else
     {
+        bstream->read(&mLastControlObjectChecksum);
         moveReadPacket(bstream);
     }
 }
@@ -802,7 +803,6 @@ void GameConnection::writeControlObjectState(BitStream* bstream, PacketNotify* n
 {
     if (isServerConnection())
     {
-        bstream->writeFlag(mCameraPos == 0);
         U32 sum = 0;
         if (mControlObject)
         {
@@ -827,130 +827,93 @@ void GameConnection::writeControlObjectState(BitStream* bstream, PacketNotify* n
 
         moveWritePacket(bstream);
     }
-    bstream->writeInt(mLastMoveAck - mMoveList.size(), 32);
+    else
+    {
+        bstream->writeInt(mLastMoveAck - mMoveList.size(), 32);
+        S32 gIndex = -1;
+        if (!mControlObject.isNull())
+        {
+            gIndex = getGhostIndex(mControlObject);
+        }
+        if (bstream->writeFlag(gIndex != -1))
+        {
+            // assume that the control object will write in a compression point
+            if (bstream->writeFlag(mControlObject->getPacketDataChecksum(this) != mLastControlObjectChecksum))
+            {
+#ifdef DEBUG_NET
+                Con::printf("packetDataChecksum disagree!");
+#endif
+                bstream->writeInt(gIndex, NetConnection::GhostIdBitSize);
+                mControlObject->writePacketData(this, bstream);
+            }
+            else
+            {
+                // we'll have to use the control object's position as the compression point
+                // should make this lower res for better space usage:
+                Point3F coPos = mControlObject->getPosition();
+                bstream->write(coPos.x);
+                bstream->write(coPos.y);
+                bstream->write(coPos.z);
+                bstream->setCompressionPoint(coPos);
+            }
+        }
+    }
 }
 
 void GameConnection::writePacket(BitStream *bstream, PacketNotify *note)
 {
-   char stringBuf[256];
-   bstream->clearCompressionPoint();
-   stringBuf[0] = 0;
-   bstream->setStringBuffer(stringBuf);
+    char stringBuf[256];
+    bstream->clearCompressionPoint();
+    stringBuf[0] = 0;
+    bstream->setStringBuffer(stringBuf);
+    writeControlObjectState(bstream, note);
 
-   GamePacketNotify *gnote = (GamePacketNotify *) note;
+    GamePacketNotify* gnote = (GamePacketNotify*)note;
 
-   U32 startPos = bstream->getCurPos();
-   if (isServerConnection())
-   {
-      bstream->writeFlag(mCameraPos == 0);
-      U32 sum = 0;
-      if(mControlObject)
-      {
-         mControlObject->interpolateTick(0);
-         sum = mControlObject->getPacketDataChecksum(this);
-         mControlObject->interpolateTick(gClientProcessList.getLastInterpDelta());
-      }
-      // if we're recording, we want to make sure that we get periodic updates of the 
-      // control object "just in case" - ie if the math copro is different between the
-      // recording machine (SIMD vs FPU), we get periodic corrections
-      
-      if(isRecording())
-      {
-         U32 currentTime = Platform::getVirtualMilliseconds();
-         if(currentTime - mLastControlRequestTime > ControlRequestTime)
-         {
-            mLastControlRequestTime = currentTime;
-            sum = 0;
-         }
-      }
-      bstream->write(sum);
+    if (!isServerConnection())
+    {
+        S32 gIndex = -1;
+        if (!mControlObject.isNull())
+        {
+            gIndex = getGhostIndex(mControlObject);
 
-      moveWritePacket(bstream);
+            F32 flash = mControlObject->getDamageFlash();
+            F32 whiteOut = mControlObject->getWhiteOut();
+            if (bstream->writeFlag(flash != 0 || whiteOut != 0))
+            {
+                if (bstream->writeFlag(flash != 0))
+                    bstream->writeFloat(flash, 7);
+                if (bstream->writeFlag(whiteOut != 0))
+                    bstream->writeFloat(whiteOut / 1.5, 7);
+            }
+        }
+        else
+            bstream->writeFlag(false);
 
-      // camera fov changed? (server fov resolution is 1 degree)
-      if(bstream->writeFlag(mUpdateCameraFov))
-      {
-         bstream->writeInt(mClamp(S32(mCameraFov), S32(MinCameraFov), S32(MaxCameraFov)), 8);
-         mUpdateCameraFov = false;
-      }
-      DEBUG_LOG(("PKLOG %d CLIENTMOVES: %d", getId(), bstream->getCurPos() - startPos));
-   }
-   else
-   {
-      // The only time mMoveList will not be empty at this
-      // point is during a change in control object.
-
-      bstream->writeInt(mLastMoveAck - mMoveList.size(),32);
-
-      S32 gIndex = -1;
-
-      // get the ghost index of the control object, and write out
-      // all the damage flash & white out 
-
-      if (!mControlObject.isNull())
-      {
-         gIndex = getGhostIndex(mControlObject);
-      
-         F32 flash = mControlObject->getDamageFlash();
-         F32 whiteOut = mControlObject->getWhiteOut();
-         if(bstream->writeFlag(flash != 0 || whiteOut != 0))
-         {
-            if(bstream->writeFlag(flash != 0))
-               bstream->writeFloat(flash, 7);
-            if(bstream->writeFlag(whiteOut != 0))
-               bstream->writeFloat(whiteOut/1.5, 7);
-         }
-      }
-      else
-         bstream->writeFlag(false);
-
-      if (bstream->writeFlag(gIndex != -1))
-      {
-         // assume that the control object will write in a compression point
-         if(bstream->writeFlag(mControlObject->getPacketDataChecksum(this) != mLastControlObjectChecksum))
-         {
-#ifdef DEBUG_NET
-            Con::printf("packetDataChecksum disagree!");
-#endif
-            bstream->writeInt(gIndex, NetConnection::GhostIdBitSize);
-            mControlObject->writePacketData(this, bstream);
-         }
-         else
-         {
-            // we'll have to use the control object's position as the compression point
-            // should make this lower res for better space usage:
-            Point3F coPos = mControlObject->getPosition();
-            bstream->write(coPos.x);
-            bstream->write(coPos.y);
-            bstream->write(coPos.z);
-            bstream->setCompressionPoint(coPos);
-         }
-      }
-      DEBUG_LOG(("PKLOG %d CONTROLOBJECTSTATE: %d", getId(), bstream->getCurPos() - startPos));
-      startPos = bstream->getCurPos();
-
-      if (!mCameraObject.isNull() && mCameraObject != mControlObject)
-      {
-         gIndex = getGhostIndex(mCameraObject);
-         if (bstream->writeFlag(gIndex != -1))
-            bstream->writeInt(gIndex, 10);
-      }
-      else
-         bstream->writeFlag( false );
-
-      // server forcing client fov?
-      gnote->cameraFov = -1;
-      if(bstream->writeFlag(mUpdateCameraFov))
-      {
-         gnote->cameraFov = mClamp(S32(mCameraFov), S32(MinCameraFov), S32(MaxCameraFov));
-         bstream->writeInt(gnote->cameraFov, 8);
-         mUpdateCameraFov = false;
-      }
-      DEBUG_LOG(("PKLOG %d PINGCAMSTATE: %d", getId(), bstream->getCurPos() - startPos));
-   }
-   Parent::writePacket(bstream, note);
-   bstream->clearCompressionPoint();
-   bstream->setStringBuffer(NULL);
+        gnote->cameraFov = -1;
+        if (bstream->writeFlag(mUpdateCameraFov))
+        {
+            gnote->cameraFov = mClamp(S32(mCameraFov), S32(MinCameraFov), S32(MaxCameraFov));
+            bstream->writeInt(gnote->cameraFov, 8);
+            mUpdateCameraFov = false;
+        }
+        DEBUG_LOG(("PKLOG %d PINGCAMSTATE: %d", getId(), bstream->getCurPos() - startPos));
+    }
+    else
+    {
+        if (mControlObject)
+            mControlObject->controlPrePacketSend(this);
+        bstream->writeFlag(mCameraPos == 0);
+        if (bstream->writeFlag(mUpdateCameraFov))
+        {
+            bstream->writeInt(mClamp(S32(mCameraFov), S32(MinCameraFov), S32(MaxCameraFov)), 8);
+            mUpdateCameraFov = false;
+        }
+        DEBUG_LOG(("PKLOG %d CLIENTMOVES: %d", getId(), bstream->getCurPos() - startPos));
+    }
+    Parent::writePacket(bstream, note);
+    bstream->clearCompressionPoint();
+    bstream->setStringBuffer(NULL);
 }
 
 void GameConnection::detectLag()

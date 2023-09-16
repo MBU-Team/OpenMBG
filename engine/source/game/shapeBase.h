@@ -936,7 +936,7 @@ protected:
    virtual void onUnmount(ShapeBase* obj,S32 node);
    virtual void onImpact(SceneObject* obj, VectorF vec);
    virtual void onImpact(VectorF vec);
-
+public:
    virtual void controlPrePacketSend(GameConnection* conn) {};
    /// @}
 
