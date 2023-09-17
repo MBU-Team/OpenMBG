@@ -1961,7 +1961,7 @@ void ShapeBase::updateAudioPos()
 
 //----------------------------------------------------------------------------
 
-bool ShapeBase::setThreadSequence(U32 slot,S32 seq,bool reset)
+bool ShapeBase::setThreadSequence(U32 slot,S32 seq,bool reset,F32 timescale)
 {
    Thread& st = mScriptThread[slot];
    if (st.thread && st.sequence == seq && st.state == Thread::Play)
@@ -1979,6 +1979,7 @@ bool ShapeBase::setThreadSequence(U32 slot,S32 seq,bool reset)
          if (!st.thread)
             st.thread = mShapeInstance->addThread();
          mShapeInstance->setSequence(st.thread,seq,0);
+         mShapeInstance->setTimeScale(st.thread, timescale);
          stopThreadSound(st);
          updateThread(st);
       }
@@ -2816,16 +2817,14 @@ void ShapeBase::notifyCollision()
 
 void ShapeBase::onCollision(ShapeBase* object,VectorF vec, const MaterialProperty* mat)
 {
-   if (!isGhost())  {
-      char buff1[256];
-      char buff2[32];
+   char buff1[256];
+   char buff2[32];
 
-      const char* matName = mat ? mat->name : "DefaultMaterial";
+   const char* matName = mat ? mat->getName() : "DefaultMaterial";
 
-      dSprintf(buff1,sizeof(buff1),"%f %f %f",vec.x, vec.y, vec.z);
-      dSprintf(buff2,sizeof(buff2),"%f",vec.len());
-      Con::executef(mDataBlock,5,"onCollision",scriptThis(),object->scriptThis(), buff1, buff2, matName);
-   }
+   dSprintf(buff1,sizeof(buff1),"%f %f %f",vec.x, vec.y, vec.z);
+   dSprintf(buff2,sizeof(buff2),"%f",vec.len());
+   Con::executef(mDataBlock,6, !isGhost() ? "onCollision" : "onClientCollision", scriptThis(), object->scriptThis(), buff1, buff2, matName);  
 }
 
 //--------------------------------------------------------------------------
@@ -3522,15 +3521,18 @@ ConsoleMethod( ShapeBase, stopAudio, bool, 3, 3, "(int slot)")
 
 
 //----------------------------------------------------------------------------
-ConsoleMethod( ShapeBase, playThread, bool, 3, 4, "(int slot, string sequenceName)")
+ConsoleMethod( ShapeBase, playThread, bool, 3, 5, "(int slot, string sequenceName, timescale)")
 {
    U32 slot = dAtoi(argv[2]);
    if (slot >= 0 && slot < ShapeBase::MaxScriptThreads) {
-      if (argc == 4) {
+      if (argc >= 4) {
          if (object->getShape()) {
             S32 seq = object->getShape()->findSequence(argv[3]);
-            if (seq != -1 && object->setThreadSequence(slot,seq))
-               return true;
+            F32 timeScale = 1.0;
+            if (argc == 5) timeScale = dAtof(argv[4]);
+            if (seq != -1 && object->setThreadSequence(slot, seq, true, timeScale)) {
+                return true;
+            }
          }
       }
       else

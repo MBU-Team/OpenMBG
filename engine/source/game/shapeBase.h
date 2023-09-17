@@ -1089,7 +1089,7 @@ public:
    /// @param   slot   Mount slot ID
    /// @param    seq   Sequance id
    /// @param   reset   Reset the sequence
-   bool setThreadSequence(U32 slot, S32 seq, bool reset = true);
+   bool setThreadSequence(U32 slot, S32 seq, bool reset = true, F32 timescale = 1.0);
    
    /// Update the animation thread
    /// @param   st   Thread to update

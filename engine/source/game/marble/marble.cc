@@ -1381,11 +1381,11 @@ void Marble::findContacts(U32 contactMask)
                 }
 
                 if (!found) {
-
                     Marble::MaterialCollision coll{};
                     coll.ghostIndex = netIndex;
                     coll.materialId = materialId;
                     coll.ghostObject = gb;
+                    gb->getNetIndex();
                     mMaterialCollisions.push_back(coll);
                     Point3F offset(0, 0, 0);
                     queueCollision(reinterpret_cast<ShapeBase*>(gb), offset, materialId);
@@ -2016,11 +2016,10 @@ void Marble::advanceCamera(const Move* move, U32 timeDelta)
     Point3F forwardDir = mCameraOffset;
     Point3F sideDir = mCross(mCameraOffset, -gGlobalGravityDir);
     m_point3F_normalize(sideDir);
-    F32 yaw = move->yaw;
     if (mMode == 1)
     {
 		F32 dt = timeDelta;
-        yaw = dt * 0.000625;
+        mCameraYaw += dt * 0.000625;
         if (mCameraPitch < 0.7)
             mCameraPitch += fminf(0.7 - mCameraPitch, dt * 0.0015625);
         else if (mCameraPitch > 0.7)
@@ -2391,7 +2390,7 @@ void MarbleUpdateEvent::unpack(NetConnection* conn, BitStream* stream)
 	mathRead(*stream, &mPosition);
 	U32 size;
 	stream->read(&size);
-    mCollisions.reserve(size);
+    mCollisions.increment(size);
 	for (int i = 0; i < size; i++)
 	{
 		stream->read(&mCollisions[i].ghostIndex);
