@@ -92,6 +92,10 @@ class ExplosionData : public GameBaseData {
    F32               camShakeRadius;
    F32               camShakeFalloff;
 
+   S32               impulseMask;
+   F32               impulseRadius;
+   F32               impulseForce;
+
    // Dynamic Lighting. The light is smoothly
    // interpolated from start to end time.
    F32               lightStartRadius;
@@ -140,6 +144,7 @@ class Explosion : public GameBase
    bool onAdd();
    void onRemove();
    bool explode();
+   void applyImpulse();
 
    void processTick(const Move *move);
    void advanceTime(F32 dt);

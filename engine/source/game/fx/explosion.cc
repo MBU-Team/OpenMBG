@@ -126,6 +126,10 @@ ExplosionData::ExplosionData()
    camShakeRadius = 10.0;
    camShakeFalloff = 10.0;
 
+   impulseMask = ShapeBaseObjectType;
+   impulseRadius = 10.0f;
+   impulseForce = 10.0f;
+
    for( U32 i=0; i<EC_NUM_TIME_KEYS; i++ )
    {
       times[i] = 1.0;
@@ -194,6 +198,10 @@ void ExplosionData::initPersistFields()
    addField("camShakeDuration",  TypeF32,       Offset(camShakeDuration,   ExplosionData));
    addField("camShakeRadius",    TypeF32,       Offset(camShakeRadius,     ExplosionData));
    addField("camShakeFalloff",   TypeF32,       Offset(camShakeFalloff,    ExplosionData));
+
+   addField("impulseForce", TypeF32, Offset(impulseForce, ExplosionData));
+   addField("impulseRadius", TypeF32, Offset(impulseRadius, ExplosionData));
+   addField("impulseMask", TypeS32, Offset(impulseMask, ExplosionData));
 
    addNamedFieldV(lightStartRadius, TypeF32, ExplosionData, new FRangeValidator(0, MaxLightRadius));
    addNamedFieldV(lightEndRadius, TypeF32, ExplosionData, new FRangeValidator(0, MaxLightRadius));
@@ -1008,6 +1016,7 @@ bool Explosion::explode()
 {
    mActive = true;
 
+   applyImpulse();
    launchDebris( mInitialNormal );
    spawnSubExplosions();
 
@@ -1056,5 +1065,40 @@ bool Explosion::explode()
    }
 
    return true;
+}
+
+void Explosion::applyImpulse()
+{
+    if (isGhost())
+        return;
+
+    if (mDataBlock->impulseRadius == 0.0)
+        return;
+
+    SimpleQueryList sql;
+
+    Box3F queryBox(getPosition() - Point3F(mDataBlock->impulseRadius, mDataBlock->impulseRadius, mDataBlock->impulseRadius),
+        getPosition() + Point3F(mDataBlock->impulseRadius, mDataBlock->impulseRadius, mDataBlock->impulseRadius));
+
+    if (isClientObject())
+        gClientContainer.findObjects(queryBox, mDataBlock->impulseMask, SimpleQueryList::insertionCallback, &sql);
+    else
+        gServerContainer.findObjects(queryBox, mDataBlock->impulseMask, SimpleQueryList::insertionCallback, &sql);
+
+    for (S32 i = 0; i < sql.mList.size(); i++)
+    {
+        ShapeBase* obj = dynamic_cast<ShapeBase*>(sql.mList[i]);
+        if (obj == nullptr)
+            continue;
+
+        VectorF vec = obj->getPosition() - getPosition();
+        F32 len = vec.len();
+        if (mDataBlock->impulseRadius > len)
+        {
+            vec *= ((1.0f - (len / mDataBlock->impulseRadius)) * mDataBlock->impulseForce);
+        }
+
+        obj->applyImpulse(getPosition(), vec);
+    }
 }
 
