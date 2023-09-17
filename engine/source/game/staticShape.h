@@ -23,6 +23,24 @@ struct StaticShapeData: public ShapeBaseData {
    bool  isShielded;
    F32   energyPerDamagePoint;
 
+   bool scopeAlways;
+
+   enum ForceType
+   {
+       NoForce = 0,
+       ForceSpherical = 1,
+       ForceField = 2,
+       ForceCone = 3,
+       MAX_FORCE_TYPES
+   };
+
+   ForceType forceType[4];
+   S32 forceNode[4];
+   Point3F forceVector[4];
+   F32 forceRadius[4];
+   F32 forceStrength[4];
+   F32 forceArc[4];
+
    //
    DECLARE_CONOBJECT(StaticShapeData);
    static void initPersistFields();
@@ -64,6 +82,8 @@ public:
 
    U32  packUpdate  (NetConnection *conn, U32 mask, BitStream *stream);
    void unpackUpdate(NetConnection *conn,           BitStream *stream);
+
+   bool getForce(Point3F& pos, Point3F* force);
    
    // power
    void setPowered(bool power)      {mPowered = power;}

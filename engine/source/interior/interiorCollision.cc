@@ -729,7 +729,7 @@ bool Interior::buildPolyList(AbstractPolyList* list,
 
             collisionFanFromSurface(rSurface, fanVerts, &numVerts);
 
-            list->begin(0, rSurface.planeIndex);
+            list->begin(rSurface.textureIndex, rSurface.planeIndex);
             for (U32 k = 0; k < numVerts; k++)
             {
                array[k] = list->addPoint(mPoints[fanVerts[k]].point);

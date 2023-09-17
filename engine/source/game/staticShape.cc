@@ -34,7 +34,28 @@ StaticShapeData::StaticShapeData()
    genericShadowLevel = StaticShape_GenericShadowLevel;
    noShadowLevel = StaticShape_NoShadowLevel;
    noIndividualDamage = false;
+
+   scopeAlways = false;
+
+   for (S32 i = 0; i < MAX_FORCE_TYPES; i++)
+   {
+       forceType[i] = NoForce;
+       forceRadius[i] = 1.0f;
+       forceStrength[i] = 1.0f;
+       forceArc[i] = 0.7f;
+       forceNode[i] = 0;
+       forceVector[i].set(0.0f, 0.0f, 0.0f);
+   }
 }
+
+static EnumTable::Enums enumForceStates[] =
+{
+   { StaticShapeData::ForceType::NoForce,        "NoForce"   },
+   { StaticShapeData::ForceType::ForceSpherical, "Spherical" },
+   { StaticShapeData::ForceType::ForceField,     "Field"     },
+   { StaticShapeData::ForceType::ForceCone,      "Cone"      }
+};
+static EnumTable EnumForceState(4, &enumForceStates[0]);
 
 void StaticShapeData::initPersistFields()
 {
@@ -42,6 +63,14 @@ void StaticShapeData::initPersistFields()
 
    addField("noIndividualDamage",   TypeBool, Offset(noIndividualDamage,   StaticShapeData));
    addField("dynamicType",          TypeS32,  Offset(dynamicTypeField,     StaticShapeData));
+   addField("scopeAlways", TypeBool, Offset(scopeAlways, StaticShapeData));
+
+   addField("forceType", TypeEnum, Offset(forceType, StaticShapeData), MAX_FORCE_TYPES, &EnumForceState);
+   addField("forceNode", TypeS32, Offset(forceNode, StaticShapeData), MAX_FORCE_TYPES);
+   addField("forceVector", TypePoint3F, Offset(forceVector, StaticShapeData), MAX_FORCE_TYPES);
+   addField("forceRadius", TypeF32, Offset(forceRadius, StaticShapeData), MAX_FORCE_TYPES);
+   addField("forceStrength", TypeF32, Offset(forceStrength, StaticShapeData), MAX_FORCE_TYPES);
+   addField("forceArc", TypeF32, Offset(forceArc, StaticShapeData), MAX_FORCE_TYPES);
 }
 
 void StaticShapeData::packData(BitStream* stream)
@@ -49,6 +78,19 @@ void StaticShapeData::packData(BitStream* stream)
    Parent::packData(stream);
    stream->writeFlag(noIndividualDamage);
    stream->write(dynamicTypeField);
+
+   for (S32 i = 0; i < MAX_FORCE_TYPES; i++)
+   {
+       if (!stream->writeFlag(forceType[i] != NoForce))
+           continue;
+
+       stream->writeInt(forceType[i], 3);
+       stream->writeInt(forceNode[i], 8);
+       mathWrite(*stream, forceVector[i]);
+       stream->write(forceRadius[i]);
+       stream->write(forceStrength[i]);
+       stream->write(forceArc[i]);
+   }
 }
 
 void StaticShapeData::unpackData(BitStream* stream)
@@ -56,6 +98,19 @@ void StaticShapeData::unpackData(BitStream* stream)
    Parent::unpackData(stream);
    noIndividualDamage = stream->readFlag();
    stream->read(&dynamicTypeField);
+
+   for (S32 i = 0; i < MAX_FORCE_TYPES; i++)
+   {
+       if (!stream->readFlag())
+           continue;
+
+       forceType[i] = (ForceType)stream->readInt(3);
+       forceNode[i] = stream->readInt(8);
+       mathRead(*stream, &forceVector[i]);
+       stream->read(&forceRadius[i]);
+       stream->read(&forceStrength[i]);
+       stream->read(&forceArc[i]);
+   }
 }
 
 
@@ -96,6 +151,15 @@ bool StaticShape::onNewDataBlock(GameBaseData* dptr)
    mDataBlock = dynamic_cast<StaticShapeData*>(dptr);
    if (!mDataBlock || !Parent::onNewDataBlock(dptr))
       return false;
+
+   for (S32 i = 0; i < StaticShapeData::MAX_FORCE_TYPES; i++)
+   {
+       if (mDataBlock->forceType[i] != StaticShapeData::NoForce)
+       {
+           mTypeMask |= ForceObjectType;
+           break;
+       }
+   }
 
    scriptOnNewDataBlock();
    return true;
@@ -191,6 +255,67 @@ void StaticShape::unpackUpdate(NetConnection *connection, BitStream *bstream)
 
    // powered?
    mPowered = bstream->readFlag();
+}
+
+bool StaticShape::getForce(Point3F& pos, Point3F* force)
+{
+    bool retval = false;
+    if (mDataBlock != NULL && (mTypeMask & ForceObjectType) != 0 && mPowered)
+    {
+        F32 strength = 0.0;
+        F32 dot = 0.0;
+        MatrixF node;
+        Point3F nodeVec;
+        for (int i = 0; i < 4; i++)
+        {
+            if (mDataBlock->forceType[i] == StaticShapeData::NoForce)
+                continue;
+
+            getMountTransform(mDataBlock->forceNode[i], &node);
+
+            if (mDataBlock->forceVector[i].len() == 0.0f)
+                node.getColumn(1, &nodeVec);
+            else
+                nodeVec = mDataBlock->forceVector[i];
+
+            Point3F posVec = pos - node.getPosition();
+            dot = posVec.len();
+
+            if (mDataBlock->forceRadius[i] < dot)
+                continue;
+
+            StaticShapeData::ForceType forceType = mDataBlock->forceType[i];
+            strength = (1.0f - dot / mDataBlock->forceRadius[i]) * mDataBlock->forceStrength[i];
+
+            if (forceType == StaticShapeData::ForceSpherical)
+            {
+                dot = strength / dot;
+                *force += posVec * dot;
+                retval = true;
+            }
+
+            if (forceType == StaticShapeData::ForceField)
+            {
+                *force += nodeVec * strength;
+                retval = true;
+            }
+
+            if (forceType == StaticShapeData::ForceCone)
+            {
+
+                posVec *= 1.0f / dot;
+
+                F32 newDot = mDot(nodeVec, posVec);
+                F32 arc = mDataBlock->forceArc[i];
+                if (arc < newDot)
+                {
+                    *force += ((posVec * strength) * (newDot - arc)) / (1.0f - arc);
+                    retval = true;
+                }
+            }
+        }
+    }
+    return retval;
 }
 
 

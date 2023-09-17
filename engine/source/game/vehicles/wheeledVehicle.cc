@@ -1038,7 +1038,7 @@ void WheeledVehicle::updateWheelParticles(F32 dt)
             S32 mapIndex = tBlock->mMPMIndex[0];
 
             // Override the dust color with the material property
-            const MaterialPropertyMap::MapEntry* pEntry;
+            const MaterialProperty* pEntry;
             if (matMap && mapIndex != -1 && 
                   (pEntry = matMap->getMapEntryFromIndex(mapIndex)) != 0) {
                ColorF colorList[ParticleEngine::PC_COLOR_KEYS];

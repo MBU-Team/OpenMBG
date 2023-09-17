@@ -4,16 +4,30 @@
 //-----------------------------------------------------------------------------
 
 #include "dgl/materialPropertyMap.h"
+#include "console/consoleTypes.h"
 
-ConsoleFunction( addMaterialMapping, bool, 2, 99, "(string matName, ...) Set up a material mapping. See MaterialPropertyMap for details.")
+ConsoleFunction( addMaterialMapping, bool, 3, 3, "(string matName, matprop) Set up a material mapping. See MaterialPropertyMap for details.")
 {
    MaterialPropertyMap* pMap = static_cast<MaterialPropertyMap*>(Sim::findObject("MaterialPropertyMap"));
    if (pMap == NULL) {
       Con::errorf(ConsoleLogEntry::General, "Error, cannot find the global material map object");
       return false;
    }
+   
+   SimObject* obj = static_cast<SimObject*>(Sim::findObject(argv[2]));
+   if (obj == NULL) {
+       Con::errorf(0, "addMaterialMapping: Could not find MaterialProperty %s", argv[2]);
+       return false;
+   }
+   MaterialProperty* matprop = dynamic_cast<MaterialProperty*>(obj);
+   if (matprop == NULL) {
+       Con::errorf(0, "addMaterialMapping: Could not find MaterialProperty %s", argv[2]);
+	   return false;
+   }
+   return pMap->addMapping(argv[1], matprop);
 
-   return pMap->addMapping(argc - 1, argv + 1);
+
+   // return pMap->addMapping(argc - 1, argv + 1);
 }
 
 IMPLEMENT_CONOBJECT(MaterialPropertyMap);
@@ -27,15 +41,15 @@ MaterialPropertyMap::~MaterialPropertyMap()
 
 }
 
-const MaterialPropertyMap::MapEntry* MaterialPropertyMap::getMapEntry(StringTableEntry name) const
+const MaterialProperty* MaterialPropertyMap::getMapEntry(StringTableEntry name) const
 {
    // DMMNOTE: Really slow.  Shouldn't be a problem since these are one time scans
    //  for each object, but might want to replace this with a hash table
    //
-   const MapEntry* ret = NULL;
+   const MaterialProperty* ret = NULL;
    for (S32 i = 0; i < mMapEntries.size(); i++) {
       if (dStricmp(mMapEntries[i].name, name) == 0) {
-         ret = &mMapEntries[i];
+         ret = mMapEntries[i].property;
          break;
       }
    }
@@ -43,11 +57,11 @@ const MaterialPropertyMap::MapEntry* MaterialPropertyMap::getMapEntry(StringTabl
    return ret;
 }
 
-const MaterialPropertyMap::MapEntry* MaterialPropertyMap::getMapEntryFromIndex(S32 index) const
+const MaterialProperty* MaterialPropertyMap::getMapEntryFromIndex(S32 index) const
 {
-   const MapEntry* ret = NULL;
+   const MaterialProperty* ret = NULL;
    if(index < mMapEntries.size())
-      ret = &mMapEntries[index];
+      ret = mMapEntries[index].property;
    return ret;
 }
 
@@ -63,109 +77,54 @@ S32 MaterialPropertyMap::getIndexFromName(StringTableEntry name) const
    return ret;
 }
 
-MaterialPropertyMap::MapEntry* MaterialPropertyMap::getNCMapEntry(StringTableEntry name)
+bool MaterialPropertyMap::addMapping(const char* name, MaterialProperty* prop)
 {
-   return const_cast<MapEntry*>(getMapEntry(name));
-}
+   const char* matName = StringTable->insert(name);
 
-bool MaterialPropertyMap::addMapping(const S32 argc, const char** argv)
-{
-   const char* matName = StringTable->insert(argv[0]);
-
-   MapEntry* pEntry = getNCMapEntry(matName);
-   if (pEntry != NULL) {
-      Con::warnf(ConsoleLogEntry::General, "Warning, overwriting material properties for: %s", matName);
-   } else {
-      mMapEntries.increment();
-      pEntry = &mMapEntries.last();
-      pEntry->sound          = -1;
-      pEntry->puffColor[0].set(0.0f, 0.0f, 0.0f);
-      pEntry->puffColor[1].set(0.0f, 0.0f, 0.0f);
+   S32 idx = getIndexFromName(matName);
+   if (idx != -1) {
+       Con::warnf("MaterialPropertyMap::addMapping: Overwriting default material properties");
+       mMapEntries[idx].property = prop;
    }
-
-   pEntry->name           = matName;
-   pEntry->detailMapName  = NULL;
-   pEntry->environMapName = NULL;
-   pEntry->matType        = Default;
-   pEntry->matFlags       = 0;
-
-   for (U32 i = 1; S32(i) < argc; i++) {
-      const char* param = argv[i];
-
-      if (dStrnicmp(param, "detail:", dStrlen("detail:")) == 0) {
-         // Set the detail map
-         const char* pColon = dStrchr(param, ':');
-         pColon++;
-         while (*pColon == ' ' || *pColon == '\t')
-            pColon++;
-
-         pEntry->detailMapName = StringTable->insert(pColon);
-      }
-      else if (dStrnicmp(param, "environment:", dStrlen("environment:")) == 0) {
-         // Set the detail map
-         const char* pColon = dStrchr(param, ':');
-         pColon++;
-         while (*pColon == ' ' || *pColon == '\t')
-            pColon++;
-
-         const char* start = pColon;
-         while (*pColon != ' ')
-            pColon++;
-         const char* end = pColon;
-         pColon++;
-
-         char buffer[256];
-         dStrncpy(buffer, start, end - start);
-         buffer[end - start] = '\0';
-
-         pEntry->environMapName   = StringTable->insert(buffer);
-         pEntry->environMapFactor = dAtof(pColon);
-      }
-      else if (dStrnicmp(param, "color:", dStrlen("color:")) == 0) {
-         const char* curChar = dStrchr(param, ':');
-         curChar++;
-         while (*curChar == ' ' || *curChar == '\t')
-            curChar++;
-
-         char buffer[5][256];
-         S32 index = 0;
-         for(S32 x = 0; x < 5; ++x, index = 0)
-         {
-            while(*curChar != ' ' && *curChar != '\0')
-               buffer[x][index++] = *curChar++;
-            buffer[x][index++] = '\0';
-            while(*curChar == ' ')
-               ++curChar;
-         }
-         pEntry->puffColor[0].set(dAtof(buffer[0]), dAtof(buffer[1]), dAtof(buffer[2]), dAtof(buffer[3]));                        
-         pEntry->puffColor[1].set(dAtof(buffer[0]), dAtof(buffer[1]), dAtof(buffer[2]), dAtof(buffer[4]));                        
-      }
-      else if (dStrnicmp(param, "sound:", dStrlen("sound:")) == 0) {
-         // Set the detail map
-         const char* pColon = dStrchr(param, ':');
-         pColon++;
-         while (*pColon == ' ' || *pColon == '\t')
-            pColon++;
-
-         const char* start = pColon;
-         while(*pColon != ' ' && *pColon != '\0')
-            pColon++;
-         const char* end = pColon;
-         pColon++;
-
-         char buffer[256];
-         dStrncpy(buffer, start, end - start);
-         buffer[end - start] = '\0';
-
-         pEntry->sound = dAtoi(buffer);
-      }
-      else if (param[0] == '\0') {
-         // Empty statement allowed, does nothing
-      }
-      else {
-         Con::warnf(ConsoleLogEntry::General, "Warning, misunderstood material parameter: %s in materialEntry %s", param, matName);
-      }
+   else 
+   {
+       MapEntry e;
+       e.name = matName;
+       e.property = prop;
+       mMapEntries.push_back(e);
    }
 
    return true;
+}
+
+IMPLEMENT_CONOBJECT(MaterialProperty);
+
+MaterialProperty::MaterialProperty()
+{
+    name = "DefaultMaterial";
+    detailMapName = 0;
+    environMapName = 0;
+    environMapFactor = 1;
+    sound = -1;
+	puffColor[0] = ColorF(0, 0, 0, 1);
+	puffColor[1] = ColorF(0, 0, 0, 1);
+    friction = 1;
+    restitution = 1;
+    force = 0;
+}
+
+MaterialProperty::~MaterialProperty()
+{
+}
+
+void MaterialProperty::initPersistFields()
+{
+    addField("detailMap", TypeString, Offset(detailMapName, MaterialProperty));
+    addField("environmentMap", TypeString, Offset(environMapName, MaterialProperty));
+    addField("environmentMapFactor", TypeF32, Offset(environMapFactor, MaterialProperty));
+    addField("friction", TypeF32, Offset(friction, MaterialProperty));
+    addField("restitution", TypeF32, Offset(restitution, MaterialProperty));
+    addField("force", TypeF32, Offset(force, MaterialProperty));
+    addField("sound", TypeS32, Offset(sound, MaterialProperty));
+    addField("puffColor", 13, Offset(puffColor, MaterialProperty), 2);
 }

@@ -19,54 +19,54 @@
 #include "core/color.h"
 #endif
 
+class MaterialProperty : public SimObject
+{
+    typedef SimObject Parent;
+    
+public:
+    StringTableEntry  name;
+    StringTableEntry  detailMapName;
+    StringTableEntry  environMapName;
+    float             environMapFactor;
+    F32 friction;
+    F32 restitution;
+    F32 force;
+    S32               sound;
+    ColorF            puffColor[2];
+
+public:
+    MaterialProperty();
+    ~MaterialProperty();
+    static void initPersistFields();
+
+    DECLARE_CONOBJECT(MaterialProperty);
+};
+
 class MaterialPropertyMap : public SimObject
 {
    typedef SimObject Parent;
 
   public:
-   enum MaterialType {
-      Default
-   };
-
-   enum MaterialFlags {
-      None = 0 << 0
-   };
 
    struct MapEntry {
-      StringTableEntry  name;
-      StringTableEntry  detailMapName;
-      StringTableEntry  environMapName;
-
-      MaterialType      matType;
-      U32               matFlags;
-
-      float             environMapFactor;
-
-      S32               sound;
-      ColorF            puffColor[2];
-
-      F32 friction;
-      F32 restitution;
-      F32 force;
+       const char* name;
+       MaterialProperty* property;
    };
 
   public:
    MaterialPropertyMap();
    ~MaterialPropertyMap();
+   
 
-   const MapEntry* getMapEntry(StringTableEntry) const;
-   const MapEntry* getMapEntryFromIndex(S32 index) const;
+   const MaterialProperty* getMapEntry(StringTableEntry) const;
+   const MaterialProperty* getMapEntryFromIndex(S32 index) const;
    S32 getIndexFromName(StringTableEntry name) const;
 
    DECLARE_CONOBJECT(MaterialPropertyMap);
 
    // Should only be used by console functions
   public:
-   bool addMapping(const S32, const char**);
-
-   //-------------------------------------- Internal interface
-  private:
-   MapEntry* getNCMapEntry(StringTableEntry);
+   bool addMapping(const char* name, MaterialProperty* prop);
    
    //-------------------------------------- Data
   private:

@@ -262,12 +262,12 @@ void Marble::clientStateUpdated(Point3F& position, U32 positionKey, U32 powerUpI
         {
             if (!prevPad)
             {
-                Con::executef(this, 2, "onEnterPad", scriptThis());
+                Con::executef(mDataBlock, 2, "onEnterPad", scriptThis());
             }
         }
         else if (prevPad)
         {
-            Con::executef(this, 2, "onLeavePad", scriptThis());
+            Con::executef(mDataBlock, 2, "onLeavePad", scriptThis());
         }
     }
 }
@@ -1215,7 +1215,7 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
     bool contacted = false;
     if (deltaT > finalT)
     {
-        MaterialPropertyMap::MapEntry* material;
+        MaterialProperty* material;
 
         // Did we collide with a poly as opposed to a marble?
         if (marbleCollisionTime > finalT && contactPoly != NULL && contactPoly->material != -1)
@@ -1317,7 +1317,7 @@ void Marble::findContacts(U32 contactMask)
                 }
             }
 
-            MaterialPropertyMap::MapEntry* matProp = poly->object->getMaterialProperty(poly->material);
+            MaterialProperty* matProp = poly->object->getMaterialProperty(poly->material);
 
             PathedInterior* hitPI = dynamic_cast<PathedInterior*>(poly->object);
 

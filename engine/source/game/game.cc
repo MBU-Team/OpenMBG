@@ -637,6 +637,7 @@ bool clientProcess(U32 timeDelta)
    GameConnection* connection = GameConnection::getServerConnection();
    if(connection)
       connection->detectLag();
+   Con::executef(2, "onFrameAdvance", Con::getIntArg(timeDelta));
    return ret;
 }
 

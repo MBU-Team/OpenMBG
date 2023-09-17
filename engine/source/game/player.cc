@@ -2066,7 +2066,7 @@ void Player::updateActionThread()
                S32 mapIndex = tBlock->mMPMIndex[0];
                if (mapIndex != -1) {
                   MaterialPropertyMap* pMatMap = static_cast<MaterialPropertyMap*>(Sim::findObject("MaterialPropertyMap"));
-                  const MaterialPropertyMap::MapEntry* pEntry = pMatMap->getMapEntryFromIndex(mapIndex);
+                  const MaterialProperty* pEntry = pMatMap->getMapEntryFromIndex(mapIndex);
                   if(pEntry)
                   {
                      sound = pEntry->sound;
@@ -3978,7 +3978,7 @@ void Player:: playImpactSound()
             S32 mapIndex = tBlock->mMPMIndex[0];
             if (mapIndex != -1) {
                MaterialPropertyMap* pMatMap = static_cast<MaterialPropertyMap*>(Sim::findObject("MaterialPropertyMap"));
-               const MaterialPropertyMap::MapEntry* pEntry = pMatMap->getMapEntryFromIndex(mapIndex);
+               const MaterialProperty* pEntry = pMatMap->getMapEntryFromIndex(mapIndex);
                if(pEntry)
                   sound = pEntry->sound;
             }

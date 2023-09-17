@@ -2729,7 +2729,7 @@ void ShapeBase::queueCollision(ShapeBase* obj, const VectorF& vec, U32 material)
    CollisionTimeout** adr = &mTimeoutList;
    CollisionTimeout* ptr = mTimeoutList;
 
-   const MaterialPropertyMap::MapEntry* mat = obj->getMaterialProperty(material);
+   const MaterialProperty* mat = obj->getMaterialProperty(material);
 
    while (ptr) {
       if (ptr->objectNumber == num) {
@@ -2776,6 +2776,18 @@ void ShapeBase::queueCollision(ShapeBase* obj, const VectorF& vec, U32 material)
    mTimeoutList = ptr;
 }
 
+MaterialProperty* ShapeBase::getMaterialProperty(U32 idx)
+{
+    if (!mShapeInstance)
+        return NULL;
+
+    MaterialPropertyMap* m = static_cast<MaterialPropertyMap*>(Sim::findObject("MaterialPropertyMap"));
+    if (mShapeInstance->mMaterialList)
+        return (MaterialProperty*)m->getMapEntry(mShapeInstance->mMaterialList->mMaterialNames[idx]);
+    else
+        return (MaterialProperty*)m->getMapEntry(mShapeInstance->mShape->materialList->mMaterialNames[idx]);
+}
+
 void ShapeBase::notifyCollision()
 {
    // Notify all the objects that were just stamped during the queueing
@@ -2802,7 +2814,7 @@ void ShapeBase::notifyCollision()
    }
 }
 
-void ShapeBase::onCollision(ShapeBase* object,VectorF vec, const MaterialPropertyMap::MapEntry* mat)
+void ShapeBase::onCollision(ShapeBase* object,VectorF vec, const MaterialProperty* mat)
 {
    if (!isGhost())  {
       char buff1[256];
@@ -3474,7 +3486,7 @@ void ShapeBase::setSkinName(const char* name)
 
 //--------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-ConsoleMethod( ShapeBase, setHidden, void, 3, 3, "(bool show)")
+ConsoleMethod( ShapeBase, hide, void, 3, 3, "(bool show)")
 {
    object->setHidden(dAtob(argv[2]));
 }

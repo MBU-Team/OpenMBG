@@ -370,7 +370,7 @@ bool Interior::prepForRendering(const char* path)
       mEnvironFactors[i] = 1.0f;
 
       const char* pName = mMaterialList->getMaterialName(i);
-      const MaterialPropertyMap::MapEntry* pEntry = pMatMap->getMapEntry(pName);
+      const MaterialProperty* pEntry = pMatMap->getMapEntry(pName);
       if (pEntry != NULL) {
          if (pEntry->environMapName != NULL) {
             mEnvironMaps[i]    = new TextureHandle(pEntry->environMapName, MeshTexture);

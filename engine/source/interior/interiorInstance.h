@@ -232,8 +232,8 @@ class InteriorInstance : public SceneObject
    U32                                  mCRC;                  ///< CRC for the interior
    
   public:
-
-   MaterialPropertyMap::MapEntry* getMaterialProperty(U32);
+      
+   MaterialProperty* getMaterialProperty(U32);
    
    /// Returns the Light Manager handle
    LM_HANDLE getLMHandle() { return(mLMHandle); }

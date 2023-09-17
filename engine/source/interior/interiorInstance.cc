@@ -663,11 +663,11 @@ U32 InteriorInstance::getPointZone(const Point3F& p)
    return (zone-1) + mZoneRangeStart;
 }
 
-MaterialPropertyMap::MapEntry* InteriorInstance::getMaterialProperty(U32 a)
+MaterialProperty* InteriorInstance::getMaterialProperty(U32 a)
 {
     MaterialPropertyMap* m = static_cast<MaterialPropertyMap*>(Sim::findObject("MaterialPropertyMap"));
     if (!mInteriorRes.isNull())
-        return (MaterialPropertyMap::MapEntry*)m->getMapEntry((*mInteriorRes).getDetailLevel(0)->mMaterialList->mMaterialNames[a]);
+        return (MaterialProperty*)m->getMapEntry((*mInteriorRes).getDetailLevel(0)->mMaterialList->mMaterialNames[a]);
     else
         return NULL;
 }

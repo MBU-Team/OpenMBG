@@ -34,10 +34,13 @@ ConsoleMethod( GuiBitmapCtrl, setValue, void, 4, 4, "(int xAxis, int yAxis)"
    object->setValue(dAtoi(argv[2]), dAtoi(argv[3]));
 }
 
-ConsoleMethod( GuiBitmapCtrl, setBitmap, void, 3, 3, "(string filename)"
+ConsoleMethod( GuiBitmapCtrl, setBitmap, void, 3, 4, "(string filename, bool resize)"
               "Set the bitmap displayed in the control. Note that it is limited in size, to 256x256.")
 {
-   object->setBitmap(argv[2]);
+	if (argc == 4)
+		object->setBitmap(argv[2], dAtob(argv[3]));
+	else 
+        object->setBitmap(argv[2]);
 }
 
 bool GuiBitmapCtrl::onWake()

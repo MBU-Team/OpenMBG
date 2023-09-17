@@ -1480,7 +1480,7 @@ void Vehicle::updateLiftoffDust( F32 dt )
    S32 mapIndex = tBlock->mMPMIndex[0];
 
    MaterialPropertyMap* pMatMap = static_cast<MaterialPropertyMap*>(Sim::findObject("MaterialPropertyMap"));
-   const MaterialPropertyMap::MapEntry* pEntry = pMatMap->getMapEntryFromIndex(mapIndex);
+   const MaterialProperty* pEntry = pMatMap->getMapEntryFromIndex(mapIndex);
 
    if(pEntry)
    {

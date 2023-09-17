@@ -486,7 +486,7 @@ class SceneObject : public NetObject, public Container::Link
    /// Returns the material property struct for material index
    ///
    /// @param   materialIndex  Index of material to use.
-   virtual MaterialPropertyMap::MapEntry* getMaterialProperty(U32);
+   virtual MaterialProperty* getMaterialProperty(U32);
    
   protected:
 

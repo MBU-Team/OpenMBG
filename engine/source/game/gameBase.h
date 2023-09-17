@@ -280,7 +280,7 @@ class GameBase : public SceneObject
 
    /// Returns the velocity of this object.
    virtual Point3F getVelocity() const;
-   virtual void getForce(Point3F& pos, Point3F* outforce) {};
+   virtual bool getForce(Point3F& pos, Point3F* outforce) { return false; };
 
    /// @name Network
    /// @see NetObject, NetConnection

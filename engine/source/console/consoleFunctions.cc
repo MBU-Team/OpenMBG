@@ -32,6 +32,16 @@ ConsoleFunction(ExpandFilename, const char*, 2, 2, "(string filename)")
 
 ConsoleFunctionGroupBegin(StringFunctions, "General string manipulation functions.");
 
+ConsoleFunction(upperFirst, const char*, 2, 2, "(string str)"
+	"Returns a copy of str with the first character capitalized.")
+{
+	argc;
+	char* ret = Con::getReturnBuffer(dStrlen(argv[1]) + 1);
+	dStrcpy(ret, argv[1]);
+	ret[0] = dToupper(ret[0]);
+	return ret;
+}
+
 ConsoleFunction(strcmp, S32, 3, 3, "(string one, string two)")
 {
    argc;
