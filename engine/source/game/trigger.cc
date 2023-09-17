@@ -413,15 +413,17 @@ bool Trigger::testObject(GameBase* enter)
    if (mTriggerPolyhedron.pointList.size() == 0)
       return false;
 
-   mClippedList.clear();
+   return enter->getWorldBox().isOverlapped(mWorldBox);
 
-   SphereF sphere;
-   sphere.center = (mWorldBox.min + mWorldBox.max) * 0.5;
-   VectorF bv = mWorldBox.max - sphere.center;
-   sphere.radius = bv.len();
+   //mClippedList.clear();
 
-   enter->buildPolyList(&mClippedList, mWorldBox, sphere);
-   return mClippedList.isEmpty() == false;
+   //SphereF sphere;
+   //sphere.center = (mWorldBox.min + mWorldBox.max) * 0.5;
+   //VectorF bv = mWorldBox.max - sphere.center;
+   //sphere.radius = bv.len();
+
+   //enter->buildPolyList(&mClippedList, mWorldBox, sphere);
+   //return mClippedList.isEmpty() == false;
 }
 
 

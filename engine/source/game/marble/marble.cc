@@ -2062,9 +2062,9 @@ void Marble::advanceCamera(const Move* move, U32 timeDelta)
         else
         {
 			gPrevGravityDir = gGlobalGravityDir;
-            gPrevGravityMatrix = gDefaultGravityTransform;
+            gPrevGravityMatrix = gGlobalGravityMatrix;
             gInterpGravityDir = false;
-            gDefaultGravityTransform = gDefaultGravityTransform;
+            gDefaultGravityTransform = gGlobalGravityMatrix;
             gravityMat = gGlobalGravityMatrix;
         }
     }
@@ -2453,7 +2453,8 @@ ConsoleFunction(setGravityDir, void, 2, 3, "(gravity, snap)")
     Point3F oldUp;
     Point3D rot;
     oldMat.getColumn(2, &oldUp);
-	mCross(up, oldUp, &rot);
+    mCross(oldUp, up, &rot);
+
     float len = rot.len();
     if (len > 0.1)
     {

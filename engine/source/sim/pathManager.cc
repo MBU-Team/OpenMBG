@@ -207,7 +207,7 @@ void PathManager::updatePath(const U32              id,
    rEntry.smoothingType = smoothingTypes;
 
    rEntry.totalTime = 0;
-   for (S32 i = 0; i < S32(rEntry.msToNext.size()); i++)
+   for (S32 i = 0; i < S32(rEntry.msToNext.size() - 1); i++)
       rEntry.totalTime += rEntry.msToNext[i];
 
    transmitPath(id);
