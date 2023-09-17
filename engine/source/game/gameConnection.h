@@ -70,6 +70,7 @@ private:
    F32         mCameraFov;       ///< Current camera fov (in degrees).
    F32         mCameraPos;       ///< Current camera pos (0-1).
    F32         mCameraSpeed;     ///< Camera in/out speed.
+   bool        mDoNetwork; // something mbg does to make clientside work
    /// @}
 
    /// @name Move Packets

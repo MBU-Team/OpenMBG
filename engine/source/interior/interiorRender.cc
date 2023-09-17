@@ -1060,7 +1060,7 @@ void Interior::renderARB_FC(const bool useAlarmLighting, MaterialList* pMaterial
          //U32 glName = gInteriorLMManager.getHandle(mLMHandle, instanceHandle, baseName)->getGLName();
          //AssertFatal(glName, "Interior::renderARB_FC: invalid glName for texture handle");
 
-         //glBindTexture(GL_TEXTURE_2D, glName);
+         glBindTexture(GL_TEXTURE_2D, 0);
          currentlyBound0 = baseName;	
       }
 

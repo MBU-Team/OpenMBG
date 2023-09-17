@@ -123,7 +123,7 @@ void Marble::setPowerUpId(U32 id, bool reset)
     setMaskBits(PowerUpMask);
 }
 
-void Marble::getCameraTransform(float dt, MatrixF* mat)
+void Marble::getCameraTransform(F32* dt, MatrixF* mat)
 {
     if (mOOB)
     {
@@ -204,56 +204,56 @@ void Marble::clientStateUpdated(Point3F& position, U32 positionKey, U32 powerUpI
         mPowerUpId = 0;
         mPowerUpTimer = powerUpTimer + 1;
         Con::executef(this, 1, "onPowerUpUsed");
-        if (mPositionKey == positionKey)
+    }
+    if (mPositionKey == positionKey)
+    {
+        MatrixF prevTransform = mObjToWorld;
+        prevTransform.setPosition(position);
+        Parent::setTransform(prevTransform);
+        Point3F oldPos = mPosition;
+        mPosition = position;
+        float radiusExpansion = mRadius + 0.2;
+        float x1 = fmaxf(oldPos.x, mPosition.x) + radiusExpansion;
+        float z1 = fminf(oldPos.z, mPosition.z) - radiusExpansion;
+        float y1 = fminf(oldPos.y, mPosition.y) - radiusExpansion;
+        float x2 = fminf(oldPos.x, mPosition.x) - radiusExpansion;
+        float y2 = fmaxf(oldPos.y, mPosition.y) + radiusExpansion;
+        float z2 = fmaxf(oldPos.z, mPosition.z) + radiusExpansion;
+        Box3F searchBox;
+        searchBox.min.x = fminf(x1, x2);
+        searchBox.min.y = fminf(y1, y2);
+        searchBox.min.z = fminf(z1, z2);
+        searchBox.max.x = fmaxf(x1, x2);
+        searchBox.max.y = fmaxf(y1, y2);
+        searchBox.max.z = fmaxf(z1, z2);
+        SimpleQueryList queryList;
+        mContainer->findObjects(searchBox, ItemObjectType | TriggerObjectType, SimpleQueryList::insertionCallback, &queryList);
+        for (int i = 0; i < queryList.mList.size(); i++)
         {
-            MatrixF prevTransform = mObjToWorld;
-            prevTransform.setPosition(position);
-            Parent::setTransform(prevTransform);
-            Point3F oldPos = mPosition;
-            mPosition = position;
-            float radiusExpansion = mRadius + 0.2;
-            float x1 = fmaxf(oldPos.x, mPosition.x) + radiusExpansion;
-            float z1 = fminf(oldPos.z, mPosition.z) - radiusExpansion;
-            float y1 = fminf(oldPos.y, mPosition.y) - radiusExpansion;
-            float x2 = fminf(oldPos.x, mPosition.x) - radiusExpansion;
-            float y2 = fmaxf(oldPos.y, mPosition.y) + radiusExpansion;
-            float z2 = fmaxf(oldPos.z, mPosition.z) + radiusExpansion;
-            Box3F searchBox;
-            searchBox.min.x = fminf(x1, x2);
-            searchBox.min.y = fminf(y1, y2);
-            searchBox.min.z = fminf(z1, z2);
-            searchBox.max.x = fmaxf(x1, x2);
-            searchBox.max.y = fmaxf(y1, y2);
-            searchBox.max.z = fmaxf(z1, z2);
-            SimpleQueryList queryList;
-            mContainer->findObjects(0x8020, SimpleQueryList::insertionCallback, &queryList);
-            for (int i = 0; i < queryList.mList.size(); i++)
+            SceneObject* so = queryList.mList[i];
+            if ((so->getTypeMask() & TriggerObjectType) != 0)
             {
-                SceneObject* so = queryList.mList[i];
-                if ((so->getTypeMask() & TriggerObjectType) != 0)
-                {
-                    Trigger* trig = (Trigger*)so;
-                    trig->potentialEnterObject(this);
-                }
-                else if ((so->getTypeMask() & ItemObjectType) != 0 && this != ((Item*)so)->getCollisionObject())
-                {
-                    queueCollision((ShapeBase*)so, VectorF(), 0);
-                }
+                Trigger* trig = (Trigger*)so;
+                trig->potentialEnterObject(this);
             }
-            for (int i = 0; i < collisions.size(); i++)
+            else if ((so->getTypeMask() & ItemObjectType) != 0 && this != ((Item*)so)->getCollisionObject())
             {
-                MaterialCollision& col = collisions[i];
-                if (col.ghostObject)
-                {
-                    ShapeBase* sb = dynamic_cast<ShapeBase*>(col.ghostObject);
-                    if (sb)
-                    {
-                        queueCollision(sb, VectorF(), col.materialId);
-                    }
-                }
+                queueCollision((ShapeBase*)so, VectorF(), 0);
             }
-            notifyCollision();
         }
+        for (int i = 0; i < collisions.size(); i++)
+        {
+            MaterialCollision& col = collisions[i];
+            if (col.ghostObject)
+            {
+                ShapeBase* sb = dynamic_cast<ShapeBase*>(col.ghostObject);
+                if (sb)
+                {
+                    queueCollision(sb, VectorF(), col.materialId);
+                }
+            }
+        }
+        notifyCollision();
     }
     if (mPadPtr)
     {
@@ -291,7 +291,7 @@ bool Marble::onNewDataBlock(GameBaseData* dptr)
 }
 
 void Marble::onRemove() {
-    mSceneManager->removeObjectFromScene(this);
+    removeFromScene();
     mSceneManager->removeShadowOccluder(this);
     if (mRollHandle)
         alxStop(mRollHandle);
@@ -2030,11 +2030,10 @@ void Marble::advanceCamera(const Move* move, U32 timeDelta)
         mCameraPitch += move->pitch;
     
     mCameraYaw += move->yaw;
-    if (mCameraPitch <= 1.5)
-        if (mCameraPitch < -0.95)
-            mCameraPitch = -0.95;
-    else
+    if (mCameraPitch > 1.5)
         mCameraPitch = 1.5;
+    if (mCameraPitch < -0.95)
+        mCameraPitch = -0.95;
     
     if (mCameraYaw > 6.283185307179586)
         mCameraYaw -= 6.283185307179586;
@@ -2393,7 +2392,7 @@ void MarbleUpdateEvent::unpack(NetConnection* conn, BitStream* stream)
 	U32 size;
 	stream->read(&size);
     mCollisions.reserve(size);
-	for (int i = 0; i < mCollisions.size(); i++)
+	for (int i = 0; i < size; i++)
 	{
 		stream->read(&mCollisions[i].ghostIndex);
 		stream->read(&mCollisions[i].materialId);
@@ -2541,7 +2540,7 @@ ConsoleMethod(Marble, setMode, void, 3, 3, "(mode)")
     modeList[2] = "Start";
     for (int i = 0; i < 3; i++)
     {
-        if (dStricmp(modeList[i], argv[2]))
+        if (dStricmp(modeList[i], argv[2]) == 0)
         {
             object->setMode(i);
             return;

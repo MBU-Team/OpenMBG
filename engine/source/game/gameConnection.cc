@@ -71,6 +71,8 @@ GameConnection::GameConnection()
 	mBlackOutTimeMS = 0;
 	mBlackOutStartTimeMS = 0;
 	mFadeToBlack = false;
+
+    mDoNetwork = false;
 }
 
 GameConnection::~GameConnection()
@@ -676,16 +678,19 @@ void GameConnection::readControlObjectState(BitStream* bstream)
 {
     if (isServerConnection())
     {
-        mLastMoveAck = bstream->readInt(32);
-        if (mLastMoveAck < mFirstMoveIndex)
-           mLastMoveAck = mFirstMoveIndex;
-        if(mLastMoveAck > mLastClientMove)
-           mLastClientMove = mLastMoveAck;
-        while(mFirstMoveIndex < mLastMoveAck)
+        if (mDoNetwork)
         {
-           AssertFatal(mMoveList.size(), "Popping off too many moves!");
-           mMoveList.pop_front();
-           mFirstMoveIndex++;
+            mLastMoveAck = bstream->readInt(32);
+            if (mLastMoveAck < mFirstMoveIndex)
+                mLastMoveAck = mFirstMoveIndex;
+            if (mLastMoveAck > mLastClientMove)
+                mLastClientMove = mLastMoveAck;
+            while (mFirstMoveIndex < mLastMoveAck)
+            {
+                AssertFatal(mMoveList.size(), "Popping off too many moves!");
+                mMoveList.pop_front();
+                mFirstMoveIndex++;
+            }
         }
 
         if (bstream->readFlag())
@@ -694,7 +699,8 @@ void GameConnection::readControlObjectState(BitStream* bstream)
            {
               // the control object is dirty...
               // so we get an update:
-              mLastClientMove = mLastMoveAck;
+              if (mDoNetwork)
+                mLastClientMove = mLastMoveAck;
               bool callScript = false;
               if(mControlObject.isNull())
                  callScript = true;
@@ -703,7 +709,8 @@ void GameConnection::readControlObjectState(BitStream* bstream)
               ShapeBase* obj = static_cast<ShapeBase*>(resolveGhost(gIndex));
               if (mControlObject != obj)
                  setControlObject(obj);
-              obj->readPacketData(this, bstream);
+              if (mDoNetwork)
+                obj->readPacketData(this, bstream);
               
               if(callScript)
                  Con::executef(this, 2, "initialControlSet");
@@ -721,8 +728,11 @@ void GameConnection::readControlObjectState(BitStream* bstream)
     }
     else
     {
-        bstream->read(&mLastControlObjectChecksum);
-        moveReadPacket(bstream);
+        if (mDoNetwork)
+        {
+            bstream->read(&mLastControlObjectChecksum);
+            moveReadPacket(bstream);
+        }
     }
 }
 
@@ -803,33 +813,37 @@ void GameConnection::writeControlObjectState(BitStream* bstream, PacketNotify* n
 {
     if (isServerConnection())
     {
-        U32 sum = 0;
-        if (mControlObject)
+        if (mDoNetwork)
         {
-            mControlObject->interpolateTick(0);
-            sum = mControlObject->getPacketDataChecksum(this);
-            mControlObject->interpolateTick(gClientProcessList.getLastInterpDelta());
-        }
-        // if we're recording, we want to make sure that we get periodic updates of the 
-        // control object "just in case" - ie if the math copro is different between the
-        // recording machine (SIMD vs FPU), we get periodic corrections
-
-        if (isRecording())
-        {
-            U32 currentTime = Platform::getVirtualMilliseconds();
-            if (currentTime - mLastControlRequestTime > ControlRequestTime)
+            U32 sum = 0;
+            if (mControlObject)
             {
-                mLastControlRequestTime = currentTime;
-                sum = 0;
+                mControlObject->interpolateTick(0);
+                sum = mControlObject->getPacketDataChecksum(this);
+                mControlObject->interpolateTick(gClientProcessList.getLastInterpDelta());
             }
-        }
-        bstream->write(sum);
+            // if we're recording, we want to make sure that we get periodic updates of the 
+            // control object "just in case" - ie if the math copro is different between the
+            // recording machine (SIMD vs FPU), we get periodic corrections
 
-        moveWritePacket(bstream);
+            if (isRecording())
+            {
+                U32 currentTime = Platform::getVirtualMilliseconds();
+                if (currentTime - mLastControlRequestTime > ControlRequestTime)
+                {
+                    mLastControlRequestTime = currentTime;
+                    sum = 0;
+                }
+            }
+            bstream->write(sum);
+
+            moveWritePacket(bstream);
+        }
     }
     else
     {
-        bstream->writeInt(mLastMoveAck - mMoveList.size(), 32);
+        if (mDoNetwork)
+            bstream->writeInt(mLastMoveAck - mMoveList.size(), 32);
         S32 gIndex = -1;
         if (!mControlObject.isNull())
         {
@@ -844,7 +858,9 @@ void GameConnection::writeControlObjectState(BitStream* bstream, PacketNotify* n
                 Con::printf("packetDataChecksum disagree!");
 #endif
                 bstream->writeInt(gIndex, NetConnection::GhostIdBitSize);
-                mControlObject->writePacketData(this, bstream);
+                if (mDoNetwork)
+                    mControlObject->writePacketData(this, bstream);
+                
             }
             else
             {

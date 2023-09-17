@@ -205,7 +205,7 @@ public:
     void advanceTime(F32 dt);
     void doPowerUp(S32 powerUpId);
     void setPowerUpId(U32 id, bool reset);
-    void getCameraTransform(float dt, MatrixF* mat);
+    void getCameraTransform(F32* pos, MatrixF* mat);
     void clientStateUpdated(Point3F& position, U32 positionKey, U32 powerUpId, U32 powerUpTimer, Vector<MaterialCollision>& collisions);
 
     // Marble Physics

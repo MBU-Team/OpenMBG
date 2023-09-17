@@ -172,7 +172,7 @@ void NetConnection::eventWritePacket(BitStream *bstream, PacketNotify *notify)
       bstream->writeClassId(classId, NetClassTypeEvent, getNetClassGroup());
 
       ev->mEvent->pack(this, bstream);
-      DEBUG_LOG(("PKLOG %d EVENT %d: %s", getId(), bstream->getCurPos() - start, ev->mEvent->getDebugName()) );
+      // Con::printf("PKLOG %d EVENT %d: %s", getId(), bstream->getCurPos() - start, ev->mEvent->getClassName());
 
 #ifdef DEBUG_NET
       bstream->writeInt(classId ^ DebugChecksum, 32);
@@ -202,7 +202,7 @@ void NetConnection::eventWritePacket(BitStream *bstream, PacketNotify *notify)
       NetEventNote *ev = mSendEventQueueHead;
       mSendEventQueueHead = ev->mNextEvent;
       
-      //Con::printf("EVT  %d: SEND - %d", getId(), ev->mSeqCount);
+      // Con::printf("EVT  %d: SEND - %d", getId(), ev->mSeqCount);
 
       bstream->writeFlag(true);
 
@@ -221,7 +221,7 @@ void NetConnection::eventWritePacket(BitStream *bstream, PacketNotify *notify)
       S32 classId = ev->mEvent->getClassId(getNetClassGroup());
       bstream->writeClassId(classId, NetClassTypeEvent, getNetClassGroup());
       ev->mEvent->pack(this, bstream);
-      DEBUG_LOG(("PKLOG %d EVENT %d: %s", getId(), bstream->getCurPos() - start, ev->mEvent->getDebugName()) );
+      // Con::printf("PKLOG %d EVENT %d: %s", getId(), bstream->getCurPos() - start, ev->mEvent->getClassName());
 #ifdef DEBUG_NET
       bstream->writeInt(classId ^ DebugChecksum, 32);
 #endif
@@ -313,7 +313,7 @@ void NetConnection::eventReadPacket(BitStream *bstream)
       note->mEvent->incRef();
 
       note->mSeqCount = seq;
-      //Con::printf("EVT  %d: RECV - %d", getId(), evt->mSeqCount);
+      // Con::printf("EVT  %d: RECV - %d", getId(), note->mSeqCount);
       while(*waitInsert && (*waitInsert)->mSeqCount < seq)
          waitInsert = &((*waitInsert)->mNextEvent);
       
@@ -323,11 +323,12 @@ void NetConnection::eventReadPacket(BitStream *bstream)
    }
    while(mWaitSeqEvents && mWaitSeqEvents->mSeqCount == mNextRecvEventSeq)
    {
+      // Con::printf("%d", mNextRecvEventSeq);
       mNextRecvEventSeq++;
       NetEventNote *temp = mWaitSeqEvents;
       mWaitSeqEvents = temp->mNextEvent;
       
-      //Con::printf("EVT  %d: PROCESS - %d", getId(), temp->mSeqCount);
+      // Con::printf("EVT  %d: PROCESS - %d", getId(), temp->mSeqCount);
       temp->mEvent->process(this);
       temp->mEvent->decRef();
       mEventNoteChunker.free(temp);
