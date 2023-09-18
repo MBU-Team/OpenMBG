@@ -232,3 +232,43 @@ void GuiObjectView::setObjectModel(const char* modelName, const char* skinName)
 	mMinOrbitDist = mModel->getShape()->radius;
 
 }
+
+ConsoleMethod(GuiObjectView, setModel, void, 4, 4,
+	"(string shapeName)\n"
+	"(string skinName)\n"
+	"Sets the model to be displayed in this control\n\n"
+	"\\param shapeName Name of the model to display.\n"
+	"\\param skinName Name of the skin to use for the model.\n")
+{
+	argc;
+	object->setObjectModel(argv[2], argv[3]);
+}
+
+ConsoleMethod(GuiObjectView, setCameraDist, void, 3, 3,
+	"(float distance)\n"
+	"Sets the distance at which the camera orbits the object. Clamped to the acceptable range defined in the class by min and max orbit distances.\n\n"
+	"\\param distance The distance to set the orbit to (will be clamped).")
+{
+	argc;
+	object->setCameraDistance(dAtof(argv[2]));
+}
+
+ConsoleMethod(GuiObjectView, setCameraPitch, void, 3, 3, "objectView.setCameraPitch( speed )")
+{
+	argc;
+	object->setCameraPitch(dAtof(argv[2]));
+}
+
+ConsoleMethod(GuiObjectView, setCameraRotSpeed, void, 3, 3, "objectView.setCameraRotSpeed( speed )")
+{
+	argc;
+	object->setCameraRotSpeed(dAtof(argv[2]));
+}
+
+ConsoleMethod(GuiObjectView, setEmpty, void, 2, 2,
+	"()\n"
+	"Removes the model displayed in this control\n\n")
+{
+	argc;
+	object->setEmpty();
+}

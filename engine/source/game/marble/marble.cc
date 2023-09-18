@@ -199,7 +199,7 @@ void Marble::getCameraTransform(F32* dt, MatrixF* mat)
 
 void Marble::clientStateUpdated(Point3F& position, U32 positionKey, U32 powerUpId, U32 powerUpTimer, Vector<MaterialCollision>& collisions)
 {
-    if (mPowerUpTimer == powerUpTimer && mPowerUpId == powerUpId)
+    if (mPowerUpTimer == powerUpTimer && mPowerUpId != powerUpId)
     {
         mPowerUpId = 0;
         mPowerUpTimer = powerUpTimer + 1;
@@ -752,8 +752,10 @@ void Marble::doPowerUp(S32 powerUpId)
             MatrixF mat;
             EulerF p(0, 0, mCameraYaw);
             mat.set(p);
-            gPrevGravityMatrix.mul(mat);
-            Point3F yThing(gPrevGravityMatrix[1], gPrevGravityMatrix[5], gPrevGravityMatrix[9]);
+            MatrixF gravM = gPrevGravityMatrix;
+            gravM.mul(mat);
+            Point3F yThing;
+            gravM.getColumn(1, &yThing);
             F32 masslessa = mDot((Point3F)mBestContact.normal, yThing);
             yThing -= mBestContact.normal * masslessa;
 

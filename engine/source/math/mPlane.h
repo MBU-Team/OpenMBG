@@ -230,7 +230,7 @@ inline void PlaneF::set( const Point3F& k, const Point3F& j, const Point3F& l )
    y = az*bx - ax*bz;
    z = ax*by - ay*bx;
    F32 squared = x*x + y*y + z*z;
-   AssertFatal(squared != 0.0, "Error, no plane possible!");
+   // AssertFatal(squared != 0.0, "Error, no plane possible!");
 
    // In non-debug mode
    if (squared != 0) {

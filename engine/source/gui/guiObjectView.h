@@ -86,6 +86,15 @@ class GuiObjectView : public GuiTSCtrl
 		bool processCameraQuery( CameraQuery *query );
 		void renderWorld( const RectI &updateRect );
 		void setObjectModel(const char* modelName, const char* skinName);
+		inline void setCameraDistance(F32 d) { mOrbitDist = d; };
+		inline void setCameraPitch(F32 p) { mCameraRot.x = p; };
+		inline void setCameraRotSpeed(F32 s) { mCameraRotSpeed.z = s; };
+		inline void setEmpty() {
+			if (mModel != NULL) {
+				delete mModel;
+				mModel = NULL;
+			}
+		}
 };
 
 #endif // _GUIOBJECTVIEW_H_

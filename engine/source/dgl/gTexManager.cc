@@ -1322,11 +1322,11 @@ TextureObject *TextureManager::loadTexture(const char* textureName, TextureHandl
 
    if(ret)
       return ret;
-
+   
    GBitmap *bmp = loadBitmapInstance(textureName);
    if(!bmp)
    {
-      Con::warnf("Could not locate texture: %s", textureName);
+      // Con::warnf("Could not locate texture: %s", textureName);
       return NULL;
    }
 
