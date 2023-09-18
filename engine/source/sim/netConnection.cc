@@ -554,7 +554,7 @@ void NetConnection::checkPacketSend(bool force)
    U32 curTime = Platform::getVirtualMilliseconds();
    U32 delay = isServerConnection() ? gPacketUpdateDelayToServer : mCurRate.updateDelay;
 
-   if(!force)
+   if(!force && !mRemoteConnection)
    {
       if(curTime < mLastUpdateTime + delay - mSendDelayCredit)
          return;
@@ -568,8 +568,11 @@ void NetConnection::checkPacketSend(bool force)
    }
    if(windowFull())
       return;
+   F32 packetSize = mCurRate.packetSize;
+   if (mRemoteConnection)
+       packetSize = 800;
 
-   BitStream *stream = BitStream::getPacketStream(mCurRate.packetSize);
+   BitStream *stream = BitStream::getPacketStream(packetSize);
    buildSendPacketHeader(stream);
    
    mLastUpdateTime = curTime;
