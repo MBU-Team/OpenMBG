@@ -1086,7 +1086,7 @@ DisplayDevice* OpenGLDevice::create()
    WNDCLASSA wc;
    dMemset(&wc, 0, sizeof(wc));   
    wc.style         = CS_OWNDC;
-   wc.lpfnWndProc   = DefWindowProc;
+   wc.lpfnWndProc   = DefWindowProcA;
    wc.hInstance     = winState.appInstance;
    wc.lpszClassName = "OGLTest";
    RegisterClassA( &wc );

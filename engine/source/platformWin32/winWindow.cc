@@ -576,7 +576,7 @@ static LRESULT PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
       }
    }
 
-   return DefWindowProc(hWnd, message, wParam, lParam);
+   return DefWindowProcA(hWnd, message, wParam, lParam);
 }
 
 //--------------------------------------
@@ -741,7 +741,7 @@ static void InitWindowClass()
    RegisterClassA( &wc );
 
    // Curtain window class:
-   wc.lpfnWndProc   = DefWindowProc;
+   wc.lpfnWndProc   = DefWindowProcA;
    wc.hCursor       = NULL;
    wc.hbrBackground = (HBRUSH) GetStockObject(GRAY_BRUSH);
    wc.lpszClassName = "Curtain";

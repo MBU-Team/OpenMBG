@@ -285,6 +285,7 @@ bool initGame()
 {
    Con::setFloatVariable("Video::texResidentPercentage", -1.0f);
    Con::setIntVariable("Video::textureCacheMisses", -1);
+   Con::addVariable("gamePaused", TypeBool, &gGamePaused);
    Con::addVariable("timeScale", TypeF32, &gTimeScale);
    Con::addVariable("timeAdvance", TypeS32, &gTimeAdvance);
    Con::addVariable("frameSkip", TypeS32, &gFrameSkip);

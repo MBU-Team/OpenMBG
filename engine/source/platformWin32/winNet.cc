@@ -158,7 +158,7 @@ static LRESULT PASCAL WinsockProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
          }
          break;   
       default:
-         return DefWindowProc( hWnd, message, wParam, lParam );
+         return DefWindowProcA( hWnd, message, wParam, lParam );
    }
    return 0;
 }

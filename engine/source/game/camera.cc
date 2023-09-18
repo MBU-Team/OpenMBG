@@ -169,6 +169,7 @@ void Camera::processTick(const Move* move)
 void Camera::advancePhysics(const Move* move, U32 timeDelta)
 {
     Point3F vec, pos;
+    F32 dt = timeDelta / 1000.0;
     if (move) {
         // If using editor then force camera into fly mode
         if (gEditingMission && mode != FlyMode)
@@ -216,11 +217,11 @@ void Camera::advancePhysics(const Move* move, U32 timeDelta)
 
             mObjToWorld.getColumn(3, &pos);
             mObjToWorld.getColumn(0, &vec);
-            pos += vec * move->x * timeDelta * scale;
+            pos += vec * move->x * dt * scale;
             mObjToWorld.getColumn(1, &vec);
-            pos += vec * move->y * timeDelta * scale;
+            pos += vec * move->y * dt * scale;
             mObjToWorld.getColumn(2, &vec);
-            pos += vec * move->z * timeDelta * scale;
+            pos += vec * move->z * dt * scale;
             setPosition(pos, mRot);
         }
 
