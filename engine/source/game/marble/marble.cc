@@ -40,7 +40,7 @@ Marble::Marble()
     mMaterialCollisions.clear();
     mPolyList.clear();
     mNetFlags.set(0x100);
-    mTypeMask = 0x4000;
+    mTypeMask |= PlayerObjectType;
     delta.pos = Point3D(0, 0, 0);
     delta.posVec = Point3D(0, 0, 0);
     delta.prevMouseY = 1.0;
@@ -213,19 +213,10 @@ void Marble::clientStateUpdated(Point3F& position, U32 positionKey, U32 powerUpI
         Point3F oldPos = mPosition;
         mPosition = position;
         float radiusExpansion = mRadius + 0.2;
-        float x1 = fmaxf(oldPos.x, mPosition.x) + radiusExpansion;
-        float z1 = fminf(oldPos.z, mPosition.z) - radiusExpansion;
-        float y1 = fminf(oldPos.y, mPosition.y) - radiusExpansion;
-        float x2 = fminf(oldPos.x, mPosition.x) - radiusExpansion;
-        float y2 = fmaxf(oldPos.y, mPosition.y) + radiusExpansion;
-        float z2 = fmaxf(oldPos.z, mPosition.z) + radiusExpansion;
-        Box3F searchBox;
-        searchBox.min.x = fminf(x1, x2);
-        searchBox.min.y = fminf(y1, y2);
-        searchBox.min.z = fminf(z1, z2);
-        searchBox.max.x = fmaxf(x1, x2);
-        searchBox.max.y = fmaxf(y1, y2);
-        searchBox.max.z = fmaxf(z1, z2);
+        float expansion = this->mRadius + 0.2000000029802322;
+        Point3F in_rMax(fmax(oldPos.x, mPosition.x) + expansion, fmax(oldPos.y, mPosition.y) + expansion, fmax(oldPos.z, mPosition.z) + expansion);
+        Point3F in_rMin(fmin(oldPos.x, mPosition.x) - expansion, fmin(oldPos.y, mPosition.y) - expansion, fmin(oldPos.z, mPosition.z) - expansion);
+        Box3F searchBox(in_rMin, in_rMax);
         SimpleQueryList queryList;
         mContainer->findObjects(searchBox, ItemObjectType | TriggerObjectType, SimpleQueryList::insertionCallback, &queryList);
         for (int i = 0; i < queryList.mList.size(); i++)
@@ -2422,6 +2413,7 @@ void Marble::controlPrePacketSend(GameConnection* conn)
     mue->mPowerUpTimer = mPowerUpTimer;
     mue->mCollisions = mMaterialCollisions;
     conn->postNetEvent(mue);
+    mMaterialCollisions.clear();
 }
 
 ConsoleFunction(setGravityDir, void, 2, 3, "(gravity, snap)")

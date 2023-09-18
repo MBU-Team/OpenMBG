@@ -132,6 +132,7 @@ class Explosion : public GameBase
    LightInfo         mLight;
 
   protected:
+   Point3F  mInitialPosition;
    Point3F  mInitialNormal;
    F32      mFade;
    F32      mFog;
@@ -139,6 +140,7 @@ class Explosion : public GameBase
    S32      mDelayMS;
    F32      mRandomVal;
    U32      mCollideType;
+   bool mInitialPosSet;
 
   protected:
    bool onAdd();

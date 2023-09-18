@@ -1310,8 +1310,8 @@ void ShapeBase::setDamageState(DamageState state)
    const char* lastState = 0;
 
    if (!isGhost()) {
-      if (state != getDamageState())
-         setMaskBits(DamageMask);
+      //if (state != getDamageState())
+      setMaskBits(DamageMask);
 
       lastState = getDamageStateName();
       switch (state) {

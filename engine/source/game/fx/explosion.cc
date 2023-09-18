@@ -584,6 +584,8 @@ Explosion::Explosion()
    mActive = false;
    mCollideType = 0;
 
+   mInitialPosSet = false;
+
    mInitialNormal.set( 0.0, 0.0, 1.0 );
    mRandAngle = sgRandom.randF( 0.0, 1.0 ) * M_PI * 2.0;
 }
@@ -601,7 +603,8 @@ Explosion::~Explosion()
 
 void Explosion::setInitialState(const Point3F& point, const Point3F& normal, const F32 fade)
 {
-   setPosition(point);
+   mInitialPosition = point;
+   // setPosition(point);
    mInitialNormal   = normal;
    mFade            = fade;
    mFog             = 0.0f;
@@ -620,6 +623,11 @@ bool Explosion::onAdd()
 {
    if(!Parent::onAdd())
       return false;
+
+   if (!mInitialPosSet)
+   {
+       mInitialPosition = getPosition();
+   }
 
    mDelayMS = mDataBlock->delayMS + sgRandom.randI( -mDataBlock->delayVariance, mDataBlock->delayVariance );
    mEndingMS = mDataBlock->lifetimeMS + sgRandom.randI( -mDataBlock->lifetimeVariance, mDataBlock->lifetimeVariance );
@@ -1043,7 +1051,7 @@ bool Explosion::explode()
       emitter->setDataBlock(mDataBlock->particleEmitter);
       emitter->registerObject();
 
-      emitter->emitParticles(getPosition(), mInitialNormal, mDataBlock->particleRadius,
+      emitter->emitParticles(mInitialPosition, mInitialNormal, mDataBlock->particleRadius,
                              Point3F(0, 0, 0), U32(mDataBlock->particleDensity * mFade));
       emitter->deleteWhenEmpty();
    }
@@ -1069,21 +1077,15 @@ bool Explosion::explode()
 
 void Explosion::applyImpulse()
 {
-    if (isGhost())
-        return;
-
     if (mDataBlock->impulseRadius == 0.0)
         return;
 
     SimpleQueryList sql;
 
-    Box3F queryBox(getPosition() - Point3F(mDataBlock->impulseRadius, mDataBlock->impulseRadius, mDataBlock->impulseRadius),
-        getPosition() + Point3F(mDataBlock->impulseRadius, mDataBlock->impulseRadius, mDataBlock->impulseRadius));
+    Box3F queryBox(mInitialPosition - Point3F(mDataBlock->impulseRadius, mDataBlock->impulseRadius, mDataBlock->impulseRadius),
+        mInitialPosition + Point3F(mDataBlock->impulseRadius, mDataBlock->impulseRadius, mDataBlock->impulseRadius));
 
-    if (isClientObject())
-        gClientContainer.findObjects(queryBox, mDataBlock->impulseMask, SimpleQueryList::insertionCallback, &sql);
-    else
-        gServerContainer.findObjects(queryBox, mDataBlock->impulseMask, SimpleQueryList::insertionCallback, &sql);
+    gClientContainer.findObjects(queryBox, mDataBlock->impulseMask, SimpleQueryList::insertionCallback, &sql);
 
     for (S32 i = 0; i < sql.mList.size(); i++)
     {
@@ -1091,14 +1093,14 @@ void Explosion::applyImpulse()
         if (obj == nullptr)
             continue;
 
-        VectorF vec = obj->getPosition() - getPosition();
+        VectorF vec = obj->getPosition() - mInitialPosition;
         F32 len = vec.len();
         if (mDataBlock->impulseRadius > len)
         {
             vec *= ((1.0f - (len / mDataBlock->impulseRadius)) * mDataBlock->impulseForce);
         }
 
-        obj->applyImpulse(getPosition(), vec);
+        obj->applyImpulse(mInitialPosition, vec);
     }
 }
 
