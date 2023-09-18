@@ -1262,6 +1262,7 @@ namespace Sim
    }
    
    void cancelEvent(U32 eventId);
+   void cancelPendingEvents(SimObject*);
    bool isEventPending(U32 eventId);
 }
 

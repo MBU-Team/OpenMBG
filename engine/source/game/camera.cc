@@ -164,73 +164,78 @@ void Camera::setCameraFov(F32 fov)
 void Camera::processTick(const Move* move)
 {
    Parent::processTick(move);
-   Point3F vec,pos;
-   if (move) {
-      // If using editor then force camera into fly mode
-      if(gEditingMission && mode != FlyMode)
-         setFlyMode();
+}
 
-      // Update orientation
-      delta.rotVec = mRot;
-      mObjToWorld.getColumn(3,&delta.posVec);
+void Camera::advancePhysics(const Move* move, U32 timeDelta)
+{
+    Point3F vec, pos;
+    if (move) {
+        // If using editor then force camera into fly mode
+        if (gEditingMission && mode != FlyMode)
+            setFlyMode();
 
-      mRot.x += move->pitch;
-      if(mRot.x > MaxPitch)
-         mRot.x = MaxPitch;
-      else if(mRot.x < -MaxPitch)
-         mRot.x = -MaxPitch;
+        // Update orientation
+        delta.rotVec = mRot;
+        mObjToWorld.getColumn(3, &delta.posVec);
 
-      mRot.z += move->yaw;
+        mRot.x += move->pitch;
+        if (mRot.x > MaxPitch)
+            mRot.x = MaxPitch;
+        else if (mRot.x < -MaxPitch)
+            mRot.x = -MaxPitch;
 
-      if(mode == OrbitObjectMode || mode == OrbitPointMode)
-      {
-         if(mode == OrbitObjectMode && bool(mOrbitObject)) {
-            // If this is a shapebase, use its render eye transform
-            // to avoid jittering.
-            GameBase *castObj = mOrbitObject;
-            ShapeBase* shape = dynamic_cast<ShapeBase*>(castObj);
-            if( shape != NULL ) {
-               MatrixF ret;
-               shape->getRenderEyeTransform( &ret );
-               mPosition = ret.getPosition();
-            } else {
-               // Hopefully this is a static object that doesn't move,
-               // because the worldbox doesn't get updated between ticks.
-               mOrbitObject->getWorldBox().getCenter(&mPosition);
+        mRot.z += move->yaw;
+
+        if (mode == OrbitObjectMode || mode == OrbitPointMode)
+        {
+            if (mode == OrbitObjectMode && bool(mOrbitObject)) {
+                // If this is a shapebase, use its render eye transform
+                // to avoid jittering.
+                GameBase* castObj = mOrbitObject;
+                ShapeBase* shape = dynamic_cast<ShapeBase*>(castObj);
+                if (shape != NULL) {
+                    MatrixF ret;
+                    shape->getRenderEyeTransform(&ret);
+                    mPosition = ret.getPosition();
+                }
+                else {
+                    // Hopefully this is a static object that doesn't move,
+                    // because the worldbox doesn't get updated between ticks.
+                    mOrbitObject->getWorldBox().getCenter(&mPosition);
+                }
             }
-         }
-         setPosition(mPosition, mRot);
-         validateEyePoint(1.0f, &mObjToWorld);
-         pos = mPosition;
-      }
-      else
-      {
-         // Update pos
-         bool faster = move->trigger[0] || move->trigger[1];
-         F32 scale = mMovementSpeed * (faster + 1);
+            setPosition(mPosition, mRot);
+            validateEyePoint(1.0f, &mObjToWorld);
+            pos = mPosition;
+        }
+        else
+        {
+            // Update pos
+            bool faster = move->trigger[0] || move->trigger[1];
+            F32 scale = mMovementSpeed * (faster + 1);
 
-         mObjToWorld.getColumn(3,&pos);
-         mObjToWorld.getColumn(0,&vec);
-         pos += vec * move->x * TickSec * scale;
-         mObjToWorld.getColumn(1,&vec);
-         pos += vec * move->y * TickSec * scale;
-         mObjToWorld.getColumn(2,&vec);
-         pos += vec * move->z * TickSec * scale;
-         setPosition(pos,mRot);
-      }
+            mObjToWorld.getColumn(3, &pos);
+            mObjToWorld.getColumn(0, &vec);
+            pos += vec * move->x * timeDelta * scale;
+            mObjToWorld.getColumn(1, &vec);
+            pos += vec * move->y * timeDelta * scale;
+            mObjToWorld.getColumn(2, &vec);
+            pos += vec * move->z * timeDelta * scale;
+            setPosition(pos, mRot);
+        }
 
-      // If on the client, calc delta for backstepping
-      if (isClientObject()) {
-         delta.pos = pos;
-         delta.rot = mRot;
-         delta.posVec = delta.posVec - delta.pos;
-         delta.rotVec = delta.rotVec - delta.rot;
-      }
-      setMaskBits(MoveMask);
-   }
+        // If on the client, calc delta for backstepping
+        if (isClientObject()) {
+            delta.pos = pos;
+            delta.rot = mRot;
+            delta.posVec = delta.posVec - delta.pos;
+            delta.rotVec = delta.rotVec - delta.rot;
+        }
+        setMaskBits(MoveMask);
+    }
 
-   if(getControllingClient() && mContainer)
-      updateContainer();
+    if (getControllingClient() && mContainer)
+        updateContainer();
 }
 
 void Camera::onDeleteNotify(SimObject *obj)
@@ -248,33 +253,6 @@ void Camera::onDeleteNotify(SimObject *obj)
 void Camera::interpolateTick(F32 dt)
 {
    Parent::interpolateTick(dt);
-   Point3F rot = delta.rot + delta.rotVec * dt;
-
-   if(mode == OrbitObjectMode || mode == OrbitPointMode)
-   {
-      if(mode == OrbitObjectMode && bool(mOrbitObject))
-      {
-         // If this is a shapebase, use its render eye transform
-         // to avoid jittering.
-         GameBase *castObj = mOrbitObject;
-         ShapeBase* shape = dynamic_cast<ShapeBase*>(castObj);
-         if( shape != NULL ) {
-            MatrixF ret;
-            shape->getRenderEyeTransform( &ret );
-            mPosition = ret.getPosition();
-         } else {
-            // Hopefully this is a static object that doesn't move,
-            // because the worldbox doesn't get updated between ticks.
-            mOrbitObject->getWorldBox().getCenter(&mPosition);
-         }
-      }
-      setPosition(mPosition, rot);
-      validateEyePoint(1.0f, &mObjToWorld);
-   }
-   else {
-      Point3F pos = delta.pos + delta.posVec * dt;
-      setPosition(pos,rot);
-   }
 }
 
 void Camera::setPosition(const Point3F& pos,const Point3F& rot)
@@ -384,6 +362,8 @@ U32 Camera::packUpdate(NetConnection *con, U32 mask, BitStream *bstream)
 
    // The rest of the data is part of the control object packet update.
    // If we're controlled by this client, we don't need to send it.
+   if (bstream->writeFlag(mask & 1))
+       bstream->write(mId);
    if(bstream->writeFlag(getControllingClient() == con && !(mask & InitialUpdateMask)))
       return 0;
 
@@ -405,6 +385,8 @@ void Camera::unpackUpdate(NetConnection *con, BitStream *bstream)
    Parent::unpackUpdate(con,bstream);
 
    // controlled by the client?
+   if (bstream->readFlag())
+       bstream->read(&mServerCameraId);
    if(bstream->readFlag())
       return;
 
@@ -659,3 +641,72 @@ F32 Camera::getWhiteOut() const
    return mWhiteOut;
 }
 
+class CameraUpdateEvent : public NetEvent
+{
+private:
+    typedef NetEvent Parent;
+
+public:
+    U32 mServerCameraId;
+    Point3F mPos;
+    Point3F mRot;
+
+    CameraUpdateEvent();
+    ~CameraUpdateEvent();
+
+    void pack(NetConnection*, BitStream*);
+    void write(NetConnection*, BitStream*);
+    void unpack(NetConnection*, BitStream*);
+    void process(NetConnection*);
+
+    DECLARE_CONOBJECT(CameraUpdateEvent);
+};
+
+IMPLEMENT_CO_SERVEREVENT_V1(CameraUpdateEvent);
+
+CameraUpdateEvent::CameraUpdateEvent()
+{
+}
+
+CameraUpdateEvent::~CameraUpdateEvent()
+{
+}
+
+void CameraUpdateEvent::pack(NetConnection* conn, BitStream* stream)
+{
+    stream->write(mServerCameraId);
+    mathWrite(*stream, mPos);
+    mathWrite(*stream, mRot);
+}
+
+void CameraUpdateEvent::write(NetConnection* conn, BitStream* stream)
+{
+    pack(conn, stream);
+}
+
+void CameraUpdateEvent::unpack(NetConnection* conn, BitStream* stream)
+{
+    stream->read(&mServerCameraId);
+    mathRead(*stream, &mPos);
+    mathRead(*stream, &mRot);
+}
+
+void CameraUpdateEvent::process(NetConnection* conn)
+{
+    GameConnection* gc = (GameConnection*)conn;
+    if (gc->getControlObject())
+    {
+        Camera* cam = dynamic_cast<Camera*>(gc->getControlObject());
+        if (cam && cam->getId() == mServerCameraId)
+            cam->setPosition(mPos, mRot);
+    }
+}
+
+void Camera::controlPrePacketSend(GameConnection* conn)
+{
+    CameraUpdateEvent* evt = new CameraUpdateEvent();
+    evt->mPos = getPosition();
+    evt->mRot = mRot;
+    evt->mServerCameraId = mServerCameraId;
+    conn->postNetEvent(evt);
+}

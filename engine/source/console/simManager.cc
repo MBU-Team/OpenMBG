@@ -107,7 +107,7 @@ void cancelEvent(U32 eventSequence)
    }
 }
 
-static void cancelPendingEvents(SimObject *obj)
+void cancelPendingEvents(SimObject *obj)
 {
    SimEvent **walk = &gEventQueue;
    SimEvent *current;

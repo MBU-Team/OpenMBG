@@ -24,9 +24,11 @@ struct CameraData: public ShapeBaseData {
 
 //----------------------------------------------------------------------------
 /// Implements a basic camera object.
+class CameraUpdateEvent;
 class Camera: public ShapeBase
 {
    typedef ShapeBase Parent;
+   friend class CameraUpdateEvent;
 
    enum MaskBits {
       MoveMask     = Parent::NextFreeMask,
@@ -50,6 +52,7 @@ class Camera: public ShapeBase
    F32 mMinOrbitDist;
    F32 mMaxOrbitDist;
    F32 mCurOrbitDist;
+   U32 mServerCameraId;
    Point3F mPosition;
    bool mObservingClientObject;
    
@@ -91,6 +94,7 @@ public:
    void onRemove();
    void renderImage(SceneState* state, SceneRenderImage* image);
    void processTick(const Move* move);
+   void advancePhysics(const Move* move, U32 delta);
    void interpolateTick(F32 delta);
    void getCameraTransform(F32* pos,MatrixF* mat);
 
@@ -107,6 +111,8 @@ public:
 
    GameBase * getOrbitObject()      { return(mOrbitObject); }
    bool isObservingClientObject()   { return(mObservingClientObject); }
+
+   void controlPrePacketSend(GameConnection* conn);
 };
 
 

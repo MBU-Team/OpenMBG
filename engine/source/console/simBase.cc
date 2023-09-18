@@ -428,6 +428,13 @@ ConsoleFunction(cancel,void,2,2,"cancel(eventId)")
    Sim::cancelEvent(dAtoi(argv[1]));
 }
 
+ConsoleFunction(cancelAll, void, 2, 2, "cancel(objectId)")
+{
+    argc;
+    Sim::cancelPendingEvents(Sim::findObject(argv[1]));
+}
+
+
 ConsoleFunction(isEventPending, bool, 2, 2, "isEventPending(%scheduleId);")
 {
    argc;
