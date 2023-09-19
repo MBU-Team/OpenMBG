@@ -2118,6 +2118,91 @@ void Interior::rebuildVertexColors(LM_HANDLE instanceHandle,
    }
 }
 
+void Interior::computeNormals(ItrFastDetail* fastDetail)
+{
+    U32 indexStart = 0;
+    for (int i = 0; i < mSurfaces.size(); i++)
+    {
+        ItrFastDetail::Section section;
+        section.start = indexStart;
+        section.count = mSurfaces[i].windingCount;
+        fastDetail->mSections.push_back(section);
+        indexStart += mSurfaces[i].windingCount;
+    }
+    fastDetail->mVertexDatas.setSize(indexStart);
+    for (int i = 0; i < mSurfaces.size(); i++)
+    {
+        Surface& surf = mSurfaces[i];
+        PlaneF plane = mPlanes[surf.planeIndex & ~0x8000];
+        TexGenPlanes& surfTexGen = mTexGenEQs[surf.texGenIndex];
+        if (surf.planeIndex & 0x8000) {
+            plane.x *= -1;
+            plane.y *= -1;
+            plane.z *= -1;
+        }
+        for (int j = 0; j < surf.windingCount; j++)
+        {
+            U32 windingIndex = surf.windingStart + j;
+            U32 sectionWindingIndex = fastDetail->mSections[i].start + j;
+
+            ItrFastDetail::VertexData& vertexData = fastDetail->mVertexDatas[sectionWindingIndex];
+
+            vertexData.normal = Point3F(plane.x, plane.y, plane.z);
+            vertexData.neighbourCount = 1;
+            vertexData.windingIndex = mWindings[windingIndex];
+            vertexData.vertex = mPoints[vertexData.windingIndex].point;
+            vertexData.texCoord = Point2F(surfTexGen.planeX.distToPlane(vertexData.vertex), surfTexGen.planeY.distToPlane(vertexData.vertex));
+        }
+    }
+    for (int i = 0; i < mSurfaces.size(); i++)
+    {
+        Surface& surf = mSurfaces[i];
+        ItrFastDetail::Section& section = fastDetail->mSections[i];
+        PlaneF plane = mPlanes[surf.planeIndex & ~0x8000];
+        if (surf.planeIndex & 0x8000) {
+            plane.x *= -1;
+            plane.y *= -1;
+            plane.z *= -1;
+        }
+        for (int j = i + 1; j < mSurfaces.size(); j++)
+        {
+            Surface& othersurf = mSurfaces[j];
+            ItrFastDetail::Section& othersection = fastDetail->mSections[j];
+            PlaneF otherplane = mPlanes[othersurf.planeIndex & ~0x8000];
+            if (surf.planeIndex & 0x8000) {
+                otherplane.x *= -1;
+                otherplane.y *= -1;
+                otherplane.z *= -1;
+            }
+
+            if (mDot(plane, otherplane) > 0.9)
+            {
+                for (int k = section.start; k < section.start + section.count; k++)
+                {
+                    for (int l = othersection.start; l < othersection.start + othersection.count; l++)
+                    {
+                        if (fastDetail->mVertexDatas[k].windingIndex == fastDetail->mVertexDatas[l].windingIndex) {
+                            ItrFastDetail::VertexData& vdata = fastDetail->mVertexDatas[k];
+                            vdata.normal += otherplane;
+                            vdata.neighbourCount++;
+
+                            ItrFastDetail::VertexData& othervdata = fastDetail->mVertexDatas[l];
+                            othervdata.normal += otherplane;
+                            othervdata.neighbourCount++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for (int i = 0; i < fastDetail->mVertexDatas.size(); i++)
+    {
+        ItrFastDetail::VertexData& vdata = fastDetail->mVertexDatas[i];
+        if (vdata.neighbourCount <= 1) continue;
+        m_point3F_normalize(vdata.normal);
+    }
+}
+
 
 //--------------------------------------------------------------------------
 void ZoneVisDeterminer::runFromState(SceneState* state, U32 offset, U32 parentZone)

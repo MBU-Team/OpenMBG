@@ -29,6 +29,7 @@
 #ifndef _COLOR_H_
 #include "core/color.h"
 #endif
+#include "interior.h"
 
 class AbstractPolyList;
 class LightUpdateGrouper;
@@ -217,6 +218,7 @@ class InteriorInstance : public SceneObject
    };
 
   private:
+   Interior::ItrFastDetail              mFastDetails[8];
    StringTableEntry                     mInteriorFileName;     ///< File name of the interior this instance encapuslates
    U32                                  mInteriorFileHash;     ///< Hash for interior file name, used for sorting
    Resource<InteriorResource>           mInteriorRes;          ///< Interior managed by resource manager

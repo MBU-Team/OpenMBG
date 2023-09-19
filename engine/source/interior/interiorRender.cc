@@ -383,6 +383,132 @@ void Interior::render(const bool useAlarmLighting, MaterialList* pMaterials, con
    }
 }
 
+void Interior::renderSmooth(MaterialList* pMaterials, Interior::ItrFastDetail* fastDetail, bool forceDrawAll, S32 intParam, U32 uintParam)
+{
+    glEnable(3553);
+    glTexEnvi(8960, 8704, 8448);
+    if (intParam == -1)
+    {
+        glEnableClientState(32884);
+        glVertexPointer(3, 5126, sizeof(Interior::ItrFastDetail::VertexData), fastDetail->mVertexDatas.address());
+        glEnableClientState(32888);
+        glTexCoordPointer(2, 5126, sizeof(Interior::ItrFastDetail::VertexData), &fastDetail->mVertexDatas.address()->texCoord);
+        glEnableClientState(32885);
+        glNormalPointer(5126, sizeof(Interior::ItrFastDetail::VertexData), &fastDetail->mVertexDatas.address()->normal);
+        if (Interior::smLockArrays && dglDoesSupportCompiledVertexArray())
+            glLockArraysEXT(0, fastDetail->mVertexDatas.size());
+        if (forceDrawAll)
+        {
+            U32 prevTexture = -1;
+            for (int i = 0; i < mSurfaces.size(); i++)
+            {
+                Surface& rSurface = mSurfaces[i];
+                Interior::ItrFastDetail::Section& section = fastDetail->mSections[i];
+                TextureObject* texObj = pMaterials->getMaterial(rSurface.textureIndex);
+				if (texObj)
+				{
+					GLuint texGLName = texObj->texGLName;
+					if (TextureManager::areSmallTexturesActive() && texObj->smallTexGLName)
+						texGLName = texObj->smallTexGLName;
+					if (prevTexture != texGLName)
+					{
+						prevTexture = texGLName;
+						glBindTexture(3553, texGLName);
+					}
+				}
+				else
+				{
+					glBindTexture(3553, 0);
+				}
+                glDrawArrays(5, section.start, section.count);
+            }
+        }
+        else if (sgActivePolyListSize)
+        {
+            U32 prevTexture = -1;
+            for (U32 i = 0; i < sgActivePolyListSize; i++) {
+                const Surface& rSurface = mSurfaces[sgActivePolyList[i]];
+                Interior::ItrFastDetail::Section& section = fastDetail->mSections[sgActivePolyList[i]];
+                TextureObject* texObj = pMaterials->getMaterial(rSurface.textureIndex);
+                if (texObj)
+                {
+                    GLuint texGLName = texObj->texGLName;
+                    if (TextureManager::areSmallTexturesActive() && texObj->smallTexGLName)
+                        texGLName = texObj->smallTexGLName;
+                    if (prevTexture != texGLName)
+                    {
+                        prevTexture = texGLName;
+                        glBindTexture(3553, texGLName);
+                    }
+                }
+                else
+                {
+                    glBindTexture(3553, 0);
+                }
+                glDrawArrays(5, section.start, section.count);
+            }
+        }
+        if (Interior::smLockArrays && dglDoesSupportCompiledVertexArray())
+            glUnlockArraysEXT();
+        glDisableClientState(32884);
+        glDisableClientState(32888);
+        glDisableClientState(32885);
+    }
+    else if (forceDrawAll)
+    {
+        U32 prevTexture = -1;
+        for (int i = 0; i < mSurfaces.size(); i++)
+        {
+            Surface& rSurface = mSurfaces[i];
+            Interior::ItrFastDetail::Section& section = fastDetail->mSections[i];
+            TextureObject* texObj = pMaterials->getMaterial(rSurface.textureIndex);
+            if (texObj)
+            {
+                GLuint texGLName = texObj->texGLName;
+                if (TextureManager::areSmallTexturesActive() && texObj->smallTexGLName)
+                    texGLName = texObj->smallTexGLName;
+                if (prevTexture != texGLName)
+                {
+                    prevTexture = texGLName;
+                    glBindTexture(3553, texGLName);
+                }
+            }
+            else
+            {
+                glBindTexture(3553, 0);
+            }
+            // glDrawPrimitivesEXT
+        }
+    }
+    else if (sgActivePolyListSize)
+    {
+        U32 prevTexture = -1;
+        for (U32 i = 0; i < sgActivePolyListSize; i++) {
+            const Surface& rSurface = mSurfaces[sgActivePolyList[i]];
+            Interior::ItrFastDetail::Section& section = fastDetail->mSections[sgActivePolyList[i]];
+            TextureObject* texObj = pMaterials->getMaterial(rSurface.textureIndex);
+            if (texObj)
+            {
+                GLuint texGLName = texObj->texGLName;
+                if (TextureManager::areSmallTexturesActive() && texObj->smallTexGLName)
+                    texGLName = texObj->smallTexGLName;
+                if (prevTexture != texGLName)
+                {
+                    prevTexture = texGLName;
+                    glBindTexture(3553, texGLName);
+                }
+            }
+            else
+            {
+                glBindTexture(3553, 0);
+            }
+        }
+        // glDrawPrimitivesEXT
+    }
+    glDisable(3553);
+    glTexEnvi(8960, 8704, 7681);
+}
+
 
 //------------------------------------------------------------------------------
 void Interior::render_vc_tf(const bool useAlarmLighting, MaterialList* pMaterials, const LM_HANDLE,

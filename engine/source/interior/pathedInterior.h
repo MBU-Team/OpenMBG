@@ -90,6 +90,7 @@ private:
    S32                        mTargetPosition;
    Point3F                    mCurrentVelocity;
    bool                       mHasComputedNormals = false;
+   Interior::ItrFastDetail    mFastDetail;
 
    PathedInterior *mNextClientPI;
 

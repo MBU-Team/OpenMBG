@@ -246,6 +246,11 @@ extern ColorF gInteriorFogColor;
 
 void PathedInterior::renderObject(SceneState* state, SceneRenderImage*)
 {
+   if (!mHasComputedNormals)
+   {
+       mInterior->computeNormals(&mFastDetail);
+       mHasComputedNormals = true;
+   }
    U32 storedWaterMark = FrameAllocator::getWaterMark();
    Point3F worldOrigin;
    getRenderTransform().getColumn(3, &worldOrigin);
@@ -525,7 +530,7 @@ void PathedInterior::light()
 {
     if (!mHasComputedNormals)
     {
-        // computeNormals
+        mInterior->computeNormals(&mFastDetail);
     }
 }
 

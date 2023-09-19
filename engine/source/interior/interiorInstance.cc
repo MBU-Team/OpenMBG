@@ -519,29 +519,34 @@ bool InteriorInstance::onAdd()
    // Do any handle loading, etc. required.
 
    if (isClientObject()) {
-      setLightUpdatedTime(Platform::getVirtualMilliseconds());
+       setLightUpdatedTime(Platform::getVirtualMilliseconds());
 
-      for (i = 0; i < mInteriorRes->getNumDetailLevels(); i++) {
-         Interior* pInterior = mInteriorRes->getDetailLevel(i);
-         // Force the lightmap manager to download textures if we're
-         // running the mission editor.  Normally they are only
-         // downloaded after the whole scene is lit.
-         //gInteriorLMManager.addInstance(pInterior->getLMHandle(), mLMHandle, this);
-         //if (gEditingMission)  {
-         //   gInteriorLMManager.useBaseTextures(pInterior->getLMHandle(), mLMHandle);
-         //   gInteriorLMManager.downloadGLTextures(pInterior->getLMHandle());
-         //}
+       for (i = 0; i < mInteriorRes->getNumDetailLevels(); i++) {
+           Interior* pInterior = mInteriorRes->getDetailLevel(i);
+           // Force the lightmap manager to download textures if we're
+           // running the mission editor.  Normally they are only
+           // downloaded after the whole scene is lit.
+           //gInteriorLMManager.addInstance(pInterior->getLMHandle(), mLMHandle, this);
+           //if (gEditingMission)  {
+           //   gInteriorLMManager.useBaseTextures(pInterior->getLMHandle(), mLMHandle);
+           //   gInteriorLMManager.downloadGLTextures(pInterior->getLMHandle());
+           //}
 
-         // Install material list
-         mMaterialMaps.push_back(new MaterialList(pInterior->mMaterialList));
+           // Install material list
+           mMaterialMaps.push_back(new MaterialList(pInterior->mMaterialList));
 
-         // A client interior starts up it's ambient animations on add.  Ambients
-         //  are just past the triggerables.
-         for (U32 j = pInterior->mNumTriggerableLights; j < pInterior->mAnimatedLights.size(); j++)
-            activateLight(i, j);
-      }
+           // A client interior starts up it's ambient animations on add.  Ambients
+           //  are just past the triggerables.
+           for (U32 j = pInterior->mNumTriggerableLights; j < pInterior->mAnimatedLights.size(); j++)
+               activateLight(i, j);
+       }
 
-      renewOverlays();
+       renewOverlays();
+
+       for (i = 0; i < mInteriorRes->getNumDetailLevels(); i++) {
+           Interior* pInterior = mInteriorRes->getDetailLevel(i);
+           pInterior->computeNormals(&mFastDetails[i]);
+       }
    } else {
       
    }
@@ -781,6 +786,13 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
 
    PROFILE_START(IRO_GetZones);
    U32 storedWaterMark = FrameAllocator::getWaterMark();
+   F32 v59[4];
+   v59[0] = 1.0;
+   v59[1] = 1.0;
+   v59[2] = 1.0;
+   v59[3] = 1.0;
+   glMaterialfv(1032, 5634, v59);
+   glColor4f(1.0, 1.0, 1.0, 1.0);
    dglSetRenderPrimType(2);
 
    InteriorRenderImage* interiorImage = static_cast<InteriorRenderImage*>(sceneImage);
@@ -897,9 +909,12 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
    //if(&((*mVertexColorsNormal[interiorImage->mDetailLevel])[0]) == NULL)
 	  // rebuildVertexColors();
 
-   pInterior->render(mAlarmState, mMaterialMaps[interiorImage->mDetailLevel], mLMHandle,
+  /* pInterior->render(mAlarmState, mMaterialMaps[interiorImage->mDetailLevel], mLMHandle,
                      mVertexColorsNormal[interiorImage->mDetailLevel],
-                     mVertexColorsAlarm[interiorImage->mDetailLevel]); //renderSmooth
+                     mVertexColorsAlarm[interiorImage->mDetailLevel]); //renderSmooth*/
+   
+   pInterior->renderSmooth(mMaterialMaps[interiorImage->mDetailLevel], &mFastDetails[interiorImage->mDetailLevel], false, -1, 0);
+
    // pInterior->clearFog();
 
    PROFILE_END();

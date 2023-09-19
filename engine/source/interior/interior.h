@@ -477,7 +477,7 @@ class Interior
             Point3F normal;
             Point2F texCoord;
             int windingIndex;
-            int texNum;
+            int neighbourCount;
         };
         Vector<Section> mSections;
         Vector<VertexData> mVertexDatas;
@@ -734,6 +734,7 @@ class Interior
                             const Point3F&, const Point3F& rViewVector,
                             const Point3F&,
                             const F32 worldz, const Point3F& scale);
+   void renderSmooth(MaterialList* pMaterials, ItrFastDetail* fastDetail, bool boolParam, S32 intParam, U32 uintParam);
 
    void setupFog(SceneState* state);
    void clearFog();
