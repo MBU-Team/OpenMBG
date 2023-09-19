@@ -526,11 +526,11 @@ bool InteriorInstance::onAdd()
          // Force the lightmap manager to download textures if we're
          // running the mission editor.  Normally they are only
          // downloaded after the whole scene is lit.
-         gInteriorLMManager.addInstance(pInterior->getLMHandle(), mLMHandle, this);
-         if (gEditingMission)  {
-            gInteriorLMManager.useBaseTextures(pInterior->getLMHandle(), mLMHandle);
-            gInteriorLMManager.downloadGLTextures(pInterior->getLMHandle());
-         }
+         //gInteriorLMManager.addInstance(pInterior->getLMHandle(), mLMHandle, this);
+         //if (gEditingMission)  {
+         //   gInteriorLMManager.useBaseTextures(pInterior->getLMHandle(), mLMHandle);
+         //   gInteriorLMManager.downloadGLTextures(pInterior->getLMHandle());
+         //}
 
          // Install material list
          mMaterialMaps.push_back(new MaterialList(pInterior->mMaterialList));
@@ -555,19 +555,19 @@ void InteriorInstance::onRemove()
 {
    mConvexList->nukeList();
 
-   //
-   if(isClientObject())
-   {
-      if(bool(mInteriorRes) && mLMHandle != 0xFFFFFFFF)
-      {
-         for(U32 i = 0; i < mInteriorRes->getNumDetailLevels(); i++)
-         {
-            Interior * pInterior = mInteriorRes->getDetailLevel(i);
-            if (pInterior->getLMHandle() != 0xFFFFFFFF)
-               gInteriorLMManager.removeInstance(pInterior->getLMHandle(), mLMHandle);
-         }
-      }
-   }
+   ////
+   //if(isClientObject())
+   //{
+   //   if(bool(mInteriorRes) && mLMHandle != 0xFFFFFFFF)
+   //   {
+   //      for(U32 i = 0; i < mInteriorRes->getNumDetailLevels(); i++)
+   //      {
+   //         Interior * pInterior = mInteriorRes->getDetailLevel(i);
+   //         if (pInterior->getLMHandle() != 0xFFFFFFFF)
+   //            gInteriorLMManager.removeInstance(pInterior->getLMHandle(), mLMHandle);
+   //      }
+   //   }
+   //}
 
    removeFromScene();
    Parent::onRemove();
@@ -845,14 +845,14 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
    }
    
    PROFILE_END();
-   PROFILE_START(IRO_UpdateAnimatedLights);
-   // Update the animated lights...
-   if (!Interior::smUseVertexLighting)
-   {
-      LightInfo& rLightInfo = mLightInfo[interiorImage->mDetailLevel];
-      downloadLightmaps(state, pInterior, rLightInfo);
-   }
-   PROFILE_END();
+   //PROFILE_START(IRO_UpdateAnimatedLights);
+   //// Update the animated lights...
+   //if (!Interior::smUseVertexLighting)
+   //{
+   //   LightInfo& rLightInfo = mLightInfo[interiorImage->mDetailLevel];
+   //   downloadLightmaps(state, pInterior, rLightInfo);
+   //}
+   //PROFILE_END();
    PROFILE_START(IRO_RenderSolids);
 
    // Set up the model view and the global render state...
@@ -870,20 +870,20 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
    glEnable(GL_TEXTURE_2D);
 
    // We need to decide if we're going to use the low-res textures
-   Point3F camPoint = state->getCameraPosition();
-   Point3F closestPoint = getRenderWorldBox().getClosestPoint(camPoint);
-   F32 dist = (camPoint - closestPoint).len();
-   if (dist != 0.0)
-   {
-      F32 length = dglProjectRadius(dist, 1.0f / pInterior->mAveTexGenLength);
-      if (length < (1.0 / 16.0))
-      {
-         TextureManager::setSmallTexturesActive(true);
-      }
-   }
+   //Point3F camPoint = state->getCameraPosition();
+   //Point3F closestPoint = getRenderWorldBox().getClosestPoint(camPoint);
+   //F32 dist = (camPoint - closestPoint).len();
+   //if (dist != 0.0)
+   //{
+   //   F32 length = dglProjectRadius(dist, 1.0f / pInterior->mAveTexGenLength);
+   //   if (length < (1.0 / 16.0))
+   //   {
+   //      TextureManager::setSmallTexturesActive(true);
+   //   }
+   //}
 
    
-   pInterior->setupFog(state);
+   // pInterior->setupFog(state);
    pInterior->setOSCamPosition(osPoint);
    if (interiorImage->mBaseZone != 0)
       state->setupZoneProjection(interiorImage->mBaseZone + mZoneRangeStart - 1);
@@ -894,13 +894,13 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
 
    // make sure to build vertex color information in case interiors were
    //  added after the relight scene
-   if(&((*mVertexColorsNormal[interiorImage->mDetailLevel])[0]) == NULL)
-	   rebuildVertexColors();
+   //if(&((*mVertexColorsNormal[interiorImage->mDetailLevel])[0]) == NULL)
+	  // rebuildVertexColors();
 
    pInterior->render(mAlarmState, mMaterialMaps[interiorImage->mDetailLevel], mLMHandle,
                      mVertexColorsNormal[interiorImage->mDetailLevel],
-                     mVertexColorsAlarm[interiorImage->mDetailLevel]);
-   pInterior->clearFog();
+                     mVertexColorsAlarm[interiorImage->mDetailLevel]); //renderSmooth
+   // pInterior->clearFog();
 
    PROFILE_END();
    PROFILE_START(IRO_RenderDynamicLights);
@@ -976,7 +976,7 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
    dglSetRenderPrimType(0);
    
    // Reset the small textures...
-   TextureManager::setSmallTexturesActive(false);
+   // TextureManager::setSmallTexturesActive(false);
 
    PROFILE_END();
 }
@@ -1645,143 +1645,143 @@ void InteriorInstance::setAlarmMode(const bool alarm)
 
 
 //--------------------------------------------------------------------------
-void InteriorInstance::rebuildVertexColors()
-{
-   U32 i;
-   for (i = 0; i < mVertexColorsNormal.size(); i++)
-   {
-      delete mVertexColorsNormal[i];
-      mVertexColorsNormal[i] = NULL;
-   }
-   for (i = 0; i < mVertexColorsAlarm.size(); i++)
-   {
-      delete mVertexColorsAlarm[i];
-      mVertexColorsAlarm[i] = NULL;
-   }
-
-   if (bool(mInteriorRes) == false)
-      return;
-
-   mVertexColorsNormal.setSize(mInteriorRes->getNumDetailLevels());
-   mVertexColorsAlarm.setSize(mInteriorRes->getNumDetailLevels());
-   for (i = 0; i < mInteriorRes->getNumDetailLevels(); i++)
-   {
-      mVertexColorsNormal[i] = new Vector<ColorI>;
-      mVertexColorsAlarm[i]  = new Vector<ColorI>;
-      VECTOR_SET_ASSOCIATION((*mVertexColorsNormal[i]));
-      VECTOR_SET_ASSOCIATION((*mVertexColorsAlarm[i]));
-   }
-   for (i = 0; i < mInteriorRes->getNumDetailLevels(); i++)
-   {
-      Interior* pInterior = mInteriorRes->getDetailLevel(i);
-      pInterior->rebuildVertexColors(mLMHandle,
-                                     mVertexColorsNormal[i],
-                                     mVertexColorsAlarm[i]);
-   }
-}
-
-
-//--------------------------------------------------------------------------
-void InteriorInstance::updateLightMap(Interior* pInterior, LightInfo& rLightInfo, const U32 surfaceIndex)
-{
-   AssertFatal(surfaceIndex < pInterior->mSurfaces.size(), "Error, out of range surface index");
-   static U8 _newLightMapBuffer[256*256*3];
-
-   const Interior::Surface& rSurface = pInterior->mSurfaces[surfaceIndex];
-   if (rSurface.lightCount == 0)
-      return;
-
-   // Get the surface's original bitmap
-   TextureHandle* originalLMapHandle = ((mAlarmState == false) ? 
-                                        gInteriorLMManager.getHandle(pInterior->getLMHandle(), mLMHandle,
-                                                                     pInterior->mNormalLMapIndices[surfaceIndex]) :
-                                        gInteriorLMManager.getHandle(pInterior->getLMHandle(), mLMHandle,
-                                                                     pInterior->mAlarmLMapIndices[surfaceIndex]));
-
-   const GBitmap* pOriginalLMap = originalLMapHandle->getBitmap();
-   AssertFatal(pOriginalLMap != NULL, "error, no lightmap on the handle!");
-   AssertFatal(pOriginalLMap->getFormat() == GBitmap::RGB, "error, bad lightmap format!");
-
-   // First, we need to create a buffer that will receive the new lightmap
-   U32 dimX = rSurface.mapSizeX;
-   U32 dimY = rSurface.mapSizeY;
-   U8* pNewLightmap = _newLightMapBuffer;
-
-   // copy the original lightmap
-   const U8 * src = pOriginalLMap->getAddress(rSurface.mapOffsetX, rSurface.mapOffsetY);
-   U8 * dest = pNewLightmap;
-   
-   U32 runSize = rSurface.mapSizeX * 3;
-   U32 srcStep = pOriginalLMap->getWidth() * 3;
-
-   for(U32 y = 0; y < rSurface.mapSizeY; y++)
-   {
-      dMemcpy(dest, src, runSize);
-      dest += runSize;
-      src += srcStep;
-   }
-
-   // ...now we have the original lightmap, add in the animateds...
-   for (U32 i = 0; i < rSurface.lightCount; i++) {
-      const LightInfo::StateDataInfo& rInfo = rLightInfo.mStateDataInfo[rSurface.lightStateInfoStart + i];
-
-      // Only add in states that affect this surface...duh.
-      if (rInfo.curMap != NULL && rInfo.alarm == (mAlarmState != Normal)) {
-         intensityMapMerge(pNewLightmap, dimX, dimY,
-                           rInfo.curMap, rInfo.curColor);
-      }
-   }
-
-   // OK, now we have the final, current lightmap.  subimage it in...
-   glBindTexture(GL_TEXTURE_2D, originalLMapHandle->getGLName());
-   
-   if (Con::getBoolVariable("$pref::OpenGL::disableSubImage", false))
-   {
-      const U8 *src = pNewLightmap;
-      U8 *dest = (U8 *) pOriginalLMap->getAddress(rSurface.mapOffsetX, rSurface.mapOffsetY);
-      U32 destStep = pOriginalLMap->getWidth() * 3;
-
-      // copy back into the original lightmap
-      for (U32 y = 0; y < rSurface.mapSizeY; y++)
-      {
-         dMemcpy(dest, src, runSize);
-         src += runSize;
-         dest += destStep;
-      }
-
-      glTexImage2D(GL_TEXTURE_2D,
-                   0,
-                   GL_RGB,
-                   pOriginalLMap->getWidth(), pOriginalLMap->getHeight(),
-                   0,
-                   GL_RGB, GL_UNSIGNED_BYTE,
-                   pOriginalLMap->getBits(0));
-   }
-   else
-      glTexSubImage2D(GL_TEXTURE_2D,
-                      0,
-                      rSurface.mapOffsetX, rSurface.mapOffsetY,
-                      rSurface.mapSizeX,   rSurface.mapSizeY,
-                      GL_RGB, GL_UNSIGNED_BYTE,
-                      pNewLightmap);
-}
+//void InteriorInstance::rebuildVertexColors()
+//{
+//   U32 i;
+//   for (i = 0; i < mVertexColorsNormal.size(); i++)
+//   {
+//      delete mVertexColorsNormal[i];
+//      mVertexColorsNormal[i] = NULL;
+//   }
+//   for (i = 0; i < mVertexColorsAlarm.size(); i++)
+//   {
+//      delete mVertexColorsAlarm[i];
+//      mVertexColorsAlarm[i] = NULL;
+//   }
+//
+//   if (bool(mInteriorRes) == false)
+//      return;
+//
+//   mVertexColorsNormal.setSize(mInteriorRes->getNumDetailLevels());
+//   mVertexColorsAlarm.setSize(mInteriorRes->getNumDetailLevels());
+//   for (i = 0; i < mInteriorRes->getNumDetailLevels(); i++)
+//   {
+//      mVertexColorsNormal[i] = new Vector<ColorI>;
+//      mVertexColorsAlarm[i]  = new Vector<ColorI>;
+//      VECTOR_SET_ASSOCIATION((*mVertexColorsNormal[i]));
+//      VECTOR_SET_ASSOCIATION((*mVertexColorsAlarm[i]));
+//   }
+//   for (i = 0; i < mInteriorRes->getNumDetailLevels(); i++)
+//   {
+//      Interior* pInterior = mInteriorRes->getDetailLevel(i);
+//      pInterior->rebuildVertexColors(mLMHandle,
+//                                     mVertexColorsNormal[i],
+//                                     mVertexColorsAlarm[i]);
+//   }
+//}
 
 
 //--------------------------------------------------------------------------
-void InteriorInstance::downloadLightmaps(SceneState* /*state*/,
-                                         Interior*   pInterior,
-                                         LightInfo&  rLightInfo)
-{
-   extern U16* sgActivePolyList;
-   extern U32  sgActivePolyListSize;
-
-   for (U32 i = 0; i < sgActivePolyListSize; i++) {
-      if (rLightInfo.mSurfaceInvalid.test(sgActivePolyList[i]) == true) {
-         updateLightMap(pInterior, rLightInfo, sgActivePolyList[i]);
-         rLightInfo.mSurfaceInvalid.clear(sgActivePolyList[i]);
-      }
-   }
-}
+//void InteriorInstance::updateLightMap(Interior* pInterior, LightInfo& rLightInfo, const U32 surfaceIndex)
+//{
+//   AssertFatal(surfaceIndex < pInterior->mSurfaces.size(), "Error, out of range surface index");
+//   static U8 _newLightMapBuffer[256*256*3];
+//
+//   const Interior::Surface& rSurface = pInterior->mSurfaces[surfaceIndex];
+//   if (rSurface.lightCount == 0)
+//      return;
+//
+//   // Get the surface's original bitmap
+//   TextureHandle* originalLMapHandle = ((mAlarmState == false) ? 
+//                                        gInteriorLMManager.getHandle(pInterior->getLMHandle(), mLMHandle,
+//                                                                     pInterior->mNormalLMapIndices[surfaceIndex]) :
+//                                        gInteriorLMManager.getHandle(pInterior->getLMHandle(), mLMHandle,
+//                                                                     pInterior->mAlarmLMapIndices[surfaceIndex]));
+//
+//   const GBitmap* pOriginalLMap = originalLMapHandle->getBitmap();
+//   AssertFatal(pOriginalLMap != NULL, "error, no lightmap on the handle!");
+//   AssertFatal(pOriginalLMap->getFormat() == GBitmap::RGB, "error, bad lightmap format!");
+//
+//   // First, we need to create a buffer that will receive the new lightmap
+//   U32 dimX = rSurface.mapSizeX;
+//   U32 dimY = rSurface.mapSizeY;
+//   U8* pNewLightmap = _newLightMapBuffer;
+//
+//   // copy the original lightmap
+//   const U8 * src = pOriginalLMap->getAddress(rSurface.mapOffsetX, rSurface.mapOffsetY);
+//   U8 * dest = pNewLightmap;
+//   
+//   U32 runSize = rSurface.mapSizeX * 3;
+//   U32 srcStep = pOriginalLMap->getWidth() * 3;
+//
+//   for(U32 y = 0; y < rSurface.mapSizeY; y++)
+//   {
+//      dMemcpy(dest, src, runSize);
+//      dest += runSize;
+//      src += srcStep;
+//   }
+//
+//   // ...now we have the original lightmap, add in the animateds...
+//   for (U32 i = 0; i < rSurface.lightCount; i++) {
+//      const LightInfo::StateDataInfo& rInfo = rLightInfo.mStateDataInfo[rSurface.lightStateInfoStart + i];
+//
+//      // Only add in states that affect this surface...duh.
+//      if (rInfo.curMap != NULL && rInfo.alarm == (mAlarmState != Normal)) {
+//         intensityMapMerge(pNewLightmap, dimX, dimY,
+//                           rInfo.curMap, rInfo.curColor);
+//      }
+//   }
+//
+//   // OK, now we have the final, current lightmap.  subimage it in...
+//   glBindTexture(GL_TEXTURE_2D, originalLMapHandle->getGLName());
+//   
+//   if (Con::getBoolVariable("$pref::OpenGL::disableSubImage", false))
+//   {
+//      const U8 *src = pNewLightmap;
+//      U8 *dest = (U8 *) pOriginalLMap->getAddress(rSurface.mapOffsetX, rSurface.mapOffsetY);
+//      U32 destStep = pOriginalLMap->getWidth() * 3;
+//
+//      // copy back into the original lightmap
+//      for (U32 y = 0; y < rSurface.mapSizeY; y++)
+//      {
+//         dMemcpy(dest, src, runSize);
+//         src += runSize;
+//         dest += destStep;
+//      }
+//
+//      glTexImage2D(GL_TEXTURE_2D,
+//                   0,
+//                   GL_RGB,
+//                   pOriginalLMap->getWidth(), pOriginalLMap->getHeight(),
+//                   0,
+//                   GL_RGB, GL_UNSIGNED_BYTE,
+//                   pOriginalLMap->getBits(0));
+//   }
+//   else
+//      glTexSubImage2D(GL_TEXTURE_2D,
+//                      0,
+//                      rSurface.mapOffsetX, rSurface.mapOffsetY,
+//                      rSurface.mapSizeX,   rSurface.mapSizeY,
+//                      GL_RGB, GL_UNSIGNED_BYTE,
+//                      pNewLightmap);
+//}
+//
+//
+////--------------------------------------------------------------------------
+//void InteriorInstance::downloadLightmaps(SceneState* /*state*/,
+//                                         Interior*   pInterior,
+//                                         LightInfo&  rLightInfo)
+//{
+//   extern U16* sgActivePolyList;
+//   extern U32  sgActivePolyListSize;
+//
+//   for (U32 i = 0; i < sgActivePolyListSize; i++) {
+//      if (rLightInfo.mSurfaceInvalid.test(sgActivePolyList[i]) == true) {
+//         updateLightMap(pInterior, rLightInfo, sgActivePolyList[i]);
+//         rLightInfo.mSurfaceInvalid.clear(sgActivePolyList[i]);
+//      }
+//   }
+//}
 
 
 //--------------------------------------------------------------------------

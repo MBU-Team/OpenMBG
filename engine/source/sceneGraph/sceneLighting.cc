@@ -1982,8 +1982,8 @@ void SceneLighting::InteriorProxy::postLight(bool lastLight)
       return;
 
    // only rebuild the vertex colors after the last light
-   if(lastLight)
-      interior->rebuildVertexColors();
+   //if(lastLight)
+   //   interior->rebuildVertexColors();
 }
 
 //------------------------------------------------------------------------------

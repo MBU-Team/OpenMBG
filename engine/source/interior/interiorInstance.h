@@ -265,7 +265,7 @@ class InteriorInstance : public SceneObject
    Vector<Vector<ColorI>*> mVertexColorsAlarm;       ///< Vertex colors under alarm lighting per detail level
    
    /// Rebuilds the vertex colors for alarm and normal states for all detail levels
-   void rebuildVertexColors();
+   // void rebuildVertexColors();
    
    /// Returns the normal vertex lighting colors for a detail level
    /// @param   detail   Detail level
@@ -337,11 +337,11 @@ class InteriorInstance : public SceneObject
    /// @param   ms   Time delta from last update in miliseconds
    void updateLightTime(const U32 detail, const U32 lightIndex, const U32 ms);
    
-   /// This loops through all the surfaces in an interior and calls updateLightMap on them
-   /// @param   state   SceneState - Not used
-   /// @param   pInterior   Interior to operate on
-   /// @param   rLightInfo   Light to use
-   void downloadLightmaps(SceneState *state, Interior *pInterior, LightInfo &rLightInfo);
+   ///// This loops through all the surfaces in an interior and calls updateLightMap on them
+   ///// @param   state   SceneState - Not used
+   ///// @param   pInterior   Interior to operate on
+   ///// @param   rLightInfo   Light to use
+   //void downloadLightmaps(SceneState *state, Interior *pInterior, LightInfo &rLightInfo);
    
    /// This will set up a particular light in a particular detail level
    /// @param   detail   Detail level
@@ -373,12 +373,12 @@ class InteriorInstance : public SceneObject
    /// @param   ms   Time delta since last call in ms
    void updateAllLights(const U32 ms);
    
-   /// Takes the original lightmap and adds the animated lights to it and then
-   /// binds the texture to it
-   /// @param   pInterior   Interior object to map
-   /// @param   rLightInfo  Light info to use to update the light map
-   /// @param   surfaceIndex   The surface to operate on inside the interior
-   void updateLightMap(Interior *pInterior, LightInfo &rLightInfo, const U32 surfaceIndex);
+   ///// Takes the original lightmap and adds the animated lights to it and then
+   ///// binds the texture to it
+   ///// @param   pInterior   Interior object to map
+   ///// @param   rLightInfo  Light info to use to update the light map
+   ///// @param   surfaceIndex   The surface to operate on inside the interior
+   //void updateLightMap(Interior *pInterior, LightInfo &rLightInfo, const U32 surfaceIndex);
    
    /// lightMap is a 24-bit RGB texture, intensityMap is an 8 bit intensity map.  
    /// This generates lightmap = [lightmap + (intensityMap * color)]

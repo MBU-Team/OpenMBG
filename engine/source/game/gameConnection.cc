@@ -1328,7 +1328,7 @@ ConsoleMethod(GameConnection, playDemo, bool, 3, 3, "(string demoFileName)plays 
    }
 
    // After demo has loaded, execute the scene re-light the scene
-   SceneLighting::lightScene(0, 0);
+   // SceneLighting::lightScene(0, 0);
 
    return true;
 }

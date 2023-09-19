@@ -1,4 +1,3 @@
-#pragma once
 #include "game/marble/marble.h"
 #include "platform/platform.h"
 #include "dgl/dgl.h"
@@ -22,16 +21,16 @@
 
 IMPLEMENT_CO_NETOBJECT_V1(Marble);
 
-static Point3F gGlobalGravityDir(0, 0, -1);
-static Point3F gPrevGravityDir(0, 0, -1);
-static MatrixF gGlobalGravityMatrix(true);
-static MatrixF gDefaultGravityTransform(true);
-static MatrixF gPrevGravityMatrix(true);
-static QuatF   gStartGravityQuat;
-static QuatF   gEndGravityQuat;
-static bool    gInterpGravityDir = false;
-static U32     gInterpCurrentTime;
-static U32     gInterpTotalTime;
+Point3F gGlobalGravityDir(0, 0, -1);
+Point3F gPrevGravityDir(0, 0, -1);
+MatrixF gGlobalGravityMatrix(true);
+MatrixF gDefaultGravityTransform(true);
+MatrixF gPrevGravityMatrix(true);
+QuatF   gStartGravityQuat;
+QuatF   gEndGravityQuat;
+bool    gInterpGravityDir = false;
+U32     gInterpCurrentTime;
+U32     gInterpTotalTime;
 
 Marble::Marble() 
 {
@@ -39,7 +38,7 @@ Marble::Marble()
     mContacts.clear();
     mMaterialCollisions.clear();
     mPolyList.clear();
-    mNetFlags.set(0x100);
+    mNetFlags.set(Ghostable);
     mTypeMask |= PlayerObjectType;
     delta.pos = Point3D(0, 0, 0);
     delta.posVec = Point3D(0, 0, 0);
@@ -94,7 +93,7 @@ bool Marble::onAdd() {
         return false;
     addToScene();
     mSceneManager->addShadowOccluder(this);
-    if (mNetFlags.test(2))
+    if (isClientObject())
     {
         mDataBlock->rollHardSound->mDescriptionObject->mDescription.mVolume = 0;
         mRollHandle = alxPlay(mDataBlock->rollHardSound, &mObjToWorld);
@@ -212,8 +211,7 @@ void Marble::clientStateUpdated(Point3F& position, U32 positionKey, U32 powerUpI
         Parent::setTransform(prevTransform);
         Point3F oldPos = mPosition;
         mPosition = position;
-        float radiusExpansion = mRadius + 0.2;
-        float expansion = this->mRadius + 0.2000000029802322;
+        float expansion = mRadius + 0.2;
         Point3F in_rMax(fmax(oldPos.x, mPosition.x) + expansion, fmax(oldPos.y, mPosition.y) + expansion, fmax(oldPos.z, mPosition.z) + expansion);
         Point3F in_rMin(fmin(oldPos.x, mPosition.x) - expansion, fmin(oldPos.y, mPosition.y) - expansion, fmin(oldPos.z, mPosition.z) - expansion);
         Box3F searchBox(in_rMin, in_rMax);
@@ -316,8 +314,8 @@ bool Marble::updatePadState()
     if (result)
     {
         Box3F box;
-        box.min = this->mObjBox.min + this->mPosition - Point3F(0, 0, 10);
-        box.max = this->mObjBox.max + this->mPosition + Point3F(0, 0, 10);
+        box.min = mObjBox.min + mPosition - Point3F(0, 0, 10);
+        box.max = mObjBox.max + mPosition + Point3F(0, 0, 10);
         Point3F boxCenter;
         box.getCenter(&boxCenter);
 
@@ -502,7 +500,7 @@ void Marble::playBounceSound(Marble::Contact& contact, F64 contactVel)
 {
 	if (mDataBlock->minVelocityBounceSoft <= contactVel)
 	{
-		F32 random = Platform::getRandom() * 3.9999;
+		F32 random = Platform::getRandom() * 4;
 		int chance = floor(random);
 		if (chance > 3)
 		{
@@ -1890,7 +1888,7 @@ void Marble::advancePhysics(const Move* move, U32 timeDelta)
                 Point3D desiredOmega;
 
                 bool isCentered = computeMoveForces(aControl, desiredOmega, move);
-                findContacts(0x601D);
+                findContacts(StaticObjectType | TerrainObjectType | InteriorObjectType | WaterObjectType | StaticShapeObjectType | PlayerObjectType);
 
                 bool stoppedPaths = false;
                 velocityCancel(isCentered, false, bouncedYet, stoppedPaths);

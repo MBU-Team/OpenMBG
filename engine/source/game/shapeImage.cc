@@ -1092,6 +1092,7 @@ void ShapeBase::getRenderMountTransform(U32 mountPoint,MatrixF* mat)
    *mat = getRenderTransform();
 }
 
+extern MatrixF gDefaultGravityTransform;
 
 void ShapeBase::getRenderImageTransform(U32 imageSlot,MatrixF* mat)
 {
@@ -1107,6 +1108,12 @@ void ShapeBase::getRenderImageTransform(U32 imageSlot,MatrixF* mat)
       }
       else {
          getRenderMountTransform(data.mountPoint,&nmat);
+         if ((mTypeMask & PlayerObjectType) != 0)
+         {
+             Point3F pos = nmat.getPosition();
+             nmat = gDefaultGravityTransform;
+             nmat.setPosition(pos);
+         }
          mat->mul(nmat,data.mountTransform);
       }
    }

@@ -135,7 +135,7 @@ ConsoleFunction(lightScene, bool, 1, 3, "(script_function completeCallback=NULL,
          flags.set(SceneLighting::ForceWritable);
    }
 
-   return(SceneLighting::lightScene(callback, flags));
+   return false; // (SceneLighting::lightScene(callback, flags));
 }
 
 //--------------------------------------------------------------------------

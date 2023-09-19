@@ -465,6 +465,26 @@ class Interior
       U8  surfaceFlags;
       U8  windingCount;
    };
+   struct ItrFastDetail {
+        struct Section
+        {
+            int start;
+            int count;
+        };
+        struct VertexData
+        {
+            Point3F vertex;
+            Point3F normal;
+            Point2F texCoord;
+            int windingIndex;
+            int texNum;
+        };
+        Vector<Section> mSections;
+        Vector<VertexData> mVertexDatas;
+   };
+   struct ItrShadowVolume {
+       int pad;
+   };
 
    //-------------------------------------- Animated lighting structures
    enum LightFlags {
@@ -721,6 +741,8 @@ class Interior
 
   public:
    void purgeLODData();
+   void computeNormals(ItrFastDetail*);
+   void computeShadowVolume(ItrShadowVolume&, Point3F, float, Point3F);
 };
 
 //------------------------------------------------------------------------------

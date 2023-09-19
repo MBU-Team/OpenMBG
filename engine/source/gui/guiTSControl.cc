@@ -89,8 +89,8 @@ bool GuiTSCtrl::unproject(const Point3F &pt, Point3F *dest)
 
 void GuiTSCtrl::onRender(Point2I offset, const RectI &updateRect)
 {
-   if(SceneLighting::isLighting())
-      return;
+   //if(SceneLighting::isLighting())
+   //   return;
 
    if(!processCameraQuery(&mLastCameraQuery))
       return;
