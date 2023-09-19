@@ -2164,8 +2164,8 @@ void MarbleData::initPersistFields()
     addField("minBounceSpeed", TypeF32, Offset(minBounceSpeed, MarbleData));
     addField("bounceEmitter", TypeParticleEmitterDataPtr, Offset(bounceEmitter, MarbleData));
     addField("trailEmitter", TypeParticleEmitterDataPtr, Offset(trailEmitter, MarbleData));
-    addField("powerupEmitter", TypeParticleEmitterDataPtr, Offset(powerUpEmitter, MarbleData), 6);
-    addField("powerUpTime", TypeF32, Offset(powerUpTime, MarbleData), 6);
+    addField("powerUpEmitter", TypeParticleEmitterDataPtr, Offset(powerUpEmitter, MarbleData), 6);
+    addField("powerUpTime", TypeS32, Offset(powerUpTime, MarbleData), 6);
     addField("RollHardSound", TypeAudioProfilePtr, Offset(rollHardSound, MarbleData));
     addField("SlipSound", TypeAudioProfilePtr, Offset(slipSound, MarbleData));
     addField("Bounce1", TypeAudioProfilePtr, Offset(bounceSounds[0], MarbleData));

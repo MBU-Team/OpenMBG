@@ -109,7 +109,7 @@ private:
     struct PowerUpState
     {
         bool active;
-        F32 endTime;
+        S32 endTime;
         ParticleEmitter* emitter;
     };
 

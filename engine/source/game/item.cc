@@ -390,19 +390,19 @@ void Item::interpolateTick(F32 dt)
 
 void Item::setTransform(const MatrixF& mat)
 {
-   Point3F pos;
-   mat.getColumn(3,&pos);
-   MatrixF tmat;
-   if (!mRotate) {
-      // Forces all rotation to be around the z axis
-      VectorF vec;
-      mat.getColumn(1,&vec);
-      tmat.set(EulerF(0,0,-mAtan(-vec.x,vec.y)));
-   }
-   else
-      tmat.identity();
-   tmat.setColumn(3,pos);
-   Parent::setTransform(tmat);
+   //Point3F pos;
+   //mat.getColumn(3,&pos);
+   //MatrixF tmat;
+   //if (!mRotate) {
+   //   // Forces all rotation to be around the z axis
+   //   VectorF vec;
+   //   mat.getColumn(1,&vec);
+   //   tmat.set(EulerF(0,0,-mAtan(-vec.x,vec.y)));
+   //}
+   //else
+   //   tmat.identity();
+   //tmat.setColumn(3,pos);
+   Parent::setTransform(mat);
    if (!mStatic)
    {
       mAtRest = false;
