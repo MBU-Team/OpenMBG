@@ -817,13 +817,14 @@ U32 Item::packUpdate(NetConnection *connection, U32 mask, BitStream *stream)
    }
    else
       stream->writeFlag(false);
-   if (stream->writeFlag(mask & RotationMask && !mRotate)) {
-      // Assumes rotation is about the Z axis
-      AngAxisF aa(mObjToWorld);
-      stream->writeFlag(aa.axis.z < 0);
-      stream->write(aa.angle);
-   }
+   //if (stream->writeFlag(mask & RotationMask && !mRotate)) {
+   //   // Assumes rotation is about the Z axis
+   //   AngAxisF aa(mObjToWorld);
+   //   stream->writeFlag(aa.axis.z < 0);
+   //   stream->write(aa.angle);
+   //}
    if (stream->writeFlag(mask & PositionMask)) {
+       stream->writeAffineTransform(mObjToWorld);
       Point3F pos;
       mObjToWorld.getColumn(3,&pos);
       mathWrite(*stream, pos);
@@ -852,17 +853,18 @@ void Item::unpackUpdate(NetConnection *connection, BitStream *stream)
       setCollisionTimeout(static_cast<ShapeBase*>(connection->resolveGhost(gIndex)));
    }
    MatrixF mat = mObjToWorld;
+   //if (stream->readFlag()) {
+   //   // Assumes rotation is about the Z axis
+   //   AngAxisF aa;
+   //   aa.axis.set(0,0,stream->readFlag()? -1: 1);
+   //   stream->read(&aa.angle);
+   //   aa.setMatrix(&mat);
+   //   Point3F pos;
+   //   mObjToWorld.getColumn(3,&pos);
+   //   mat.setColumn(3,pos);
+   //}
    if (stream->readFlag()) {
-      // Assumes rotation is about the Z axis
-      AngAxisF aa;
-      aa.axis.set(0,0,stream->readFlag()? -1: 1);
-      stream->read(&aa.angle);
-      aa.setMatrix(&mat);
-      Point3F pos;
-      mObjToWorld.getColumn(3,&pos);
-      mat.setColumn(3,pos);
-   }
-   if (stream->readFlag()) {
+      stream->readAffineTransform(&mat);
       Point3F pos;
       mathRead(*stream, &pos);
       F32 speed = mVelocity.len();
@@ -1003,16 +1005,16 @@ bool Item::prepRenderImage(SceneState* state,
 void Item::renderImage(SceneState* state, SceneRenderImage* image)
 {
    // Client side rotation
-   if (mRotate) {
-      F32 t = Sim::getCurrentTime() * F32(1)/1000;
-      F32 r = (t / sRotationSpeed) * M_2PI;
-      Point3F pos;
-      mRenderObjToWorld.getColumn(3,&pos);
-      MatrixF mat = mRenderObjToWorld;
-      mat.set(Point3F(0,0,r));
-      mat.setColumn(3,pos);
-      Parent::setRenderTransform(mat);
-   }
+   //if (mRotate) {
+   //   F32 t = Sim::getCurrentTime() * F32(1)/1000;
+   //   F32 r = (t / sRotationSpeed) * M_2PI;
+   //   Point3F pos;
+   //   mRenderObjToWorld.getColumn(3,&pos);
+   //   MatrixF mat = mRenderObjToWorld;
+   //   mat.set(Point3F(0,0,r));
+   //   mat.setColumn(3,pos);
+   //   Parent::setRenderTransform(mat);
+   //}
    Parent::renderImage(state, image);
 
    if (mShadow)
