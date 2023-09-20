@@ -2187,7 +2187,7 @@ void Interior::computeNormals(ItrFastDetail* fastDetail)
                             vdata.neighbourCount++;
 
                             ItrFastDetail::VertexData& othervdata = fastDetail->mVertexDatas[l];
-                            othervdata.normal += otherplane;
+                            othervdata.normal += plane;
                             othervdata.neighbourCount++;
                         }
                     }
