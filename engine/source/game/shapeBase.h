@@ -344,6 +344,7 @@ struct ShapeBaseImageData: public GameBaseData {
    /// @{
    StateData state[MaxStates];   ///< Array of states.
    bool      statesLoaded;       ///< Are the states loaded yet?
+   bool ignoreMountRotation;
    /// @}
 
    /// @name Infrastructure

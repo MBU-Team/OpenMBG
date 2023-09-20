@@ -115,6 +115,8 @@ ShapeBaseImageData::ShapeBaseImageData()
    fireState = -1;
    computeCRC = false;
 
+   ignoreMountRotation = false;
+
    //
    for (int i = 0; i < MaxStates; i++) {
       stateName[i] = 0;
@@ -421,6 +423,7 @@ void ShapeBaseImageData::initPersistFields()
    addField("stateEmitterNode", TypeS32, Offset(stateEmitterNode, ShapeBaseImageData), MaxStates);
    addField("stateIgnoreLoadedForReady", TypeBool, Offset(stateIgnoreLoadedForReady, ShapeBaseImageData), MaxStates);
    addField("computeCRC", TypeBool, Offset(computeCRC, ShapeBaseImageData));
+   addField("ignoreMountRotation", TypeBool, Offset(ignoreMountRotation, ShapeBaseImageData));
 }
 
 void ShapeBaseImageData::packData(BitStream* stream)
@@ -473,6 +476,8 @@ void ShapeBaseImageData::packData(BitStream* stream)
       stream->writeRangedU32(packed? SimObjectId(casing):
          casing->getId(),DataBlockObjectIdFirst,DataBlockObjectIdLast);
    }
+
+   stream->writeFlag(ignoreMountRotation);
 
    for (U32 i = 0; i < MaxStates; i++)
       if (stream->writeFlag(state[i].name && state[i].name[0])) {
@@ -582,6 +587,8 @@ void ShapeBaseImageData::unpackData(BitStream* stream)
       casingID = stream->readRangedU32(DataBlockObjectIdFirst, DataBlockObjectIdLast);
    }
    
+   ignoreMountRotation = stream->readFlag();
+
    for (U32 i = 0; i < MaxStates; i++) {
       if (stream->readFlag()) {
          StateData& s = state[i];
@@ -1108,7 +1115,7 @@ void ShapeBase::getRenderImageTransform(U32 imageSlot,MatrixF* mat)
       }
       else {
          getRenderMountTransform(data.mountPoint,&nmat);
-         if ((mTypeMask & PlayerObjectType) != 0)
+         if ((mTypeMask & PlayerObjectType) != 0 && data.ignoreMountRotation)
          {
              Point3F pos = nmat.getPosition();
              nmat = gDefaultGravityTransform;

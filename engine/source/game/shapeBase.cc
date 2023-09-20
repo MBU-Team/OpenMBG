@@ -2178,6 +2178,8 @@ bool ShapeBase::prepRenderImage(SceneState* state, const U32 stateKey,
          {
             DetailManager::selectPotentialDetails(image.shapeInstance,dist,invScale);
 
+            bool opaque = false;
+
             if (mCloakLevel == 0.0f && image.shapeInstance->hasSolid() && mFadeVal == 1.0f)
             {
                ShapeImageRenderImage* rimage = new ShapeImageRenderImage;
@@ -2187,10 +2189,10 @@ bool ShapeBase::prepRenderImage(SceneState* state, const U32 stateKey,
                rimage->isTranslucent = false;
                rimage->textureSortKey = (U32)(dsize_t)(image.dataBlock);
                state->insertRenderImage(rimage);
+               opaque = true;
             }
 
-            if ((mCloakLevel != 0.0f || mFadeVal != 1.0f || mShapeInstance->hasTranslucency()) ||
-                (mMount.object == NULL && mGenerateShadow == true))
+            if ((mCloakLevel != 0.0f || mFadeVal != 1.0f || mShapeInstance->hasTranslucency()) || !opaque)
             {
                ShapeImageRenderImage* rimage = new ShapeImageRenderImage;
                rimage->obj = this;
