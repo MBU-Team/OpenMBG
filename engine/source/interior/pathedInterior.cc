@@ -368,7 +368,7 @@ void PathedInterior::unpackUpdate(NetConnection* con, BitStream* stream)
       mCurrentPosition = stream->readInt(gClientPathManager->getPathTimeBits(mPathKey));
       if(isProperlyAdded())
       {
-         //gClientPathManager->getPathPosition(mPathKey, mCurrentPosition, pathPos);
+         gClientPathManager->getPathPosition(mPathKey, mCurrentPosition, pathPos);
          MatrixF mat = getTransform();
          mat.setColumn(3, pathPos + mOffset);
          setTransform(mat);

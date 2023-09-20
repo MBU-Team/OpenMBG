@@ -1001,20 +1001,22 @@ bool Item::prepRenderImage(SceneState* state,
    return Parent::prepRenderImage(state, stateKey, startZone, modifyBaseState);
 }
 
+void Item::advanceTime(F32 dt)
+{
+    Parent::advanceTime(dt);
+    // Client side rotation
+    if (mRotate) {
+       F32 t = Sim::getCurrentTime() * F32(1)/1000;
+       F32 r = (t / sRotationSpeed) * M_2PI;
+       Point3F pos;
+       MatrixF mat = MatrixF(EulerF(0, 0, r));
+       MatrixF res = mRenderObjToWorld.mul(mat);
+       Parent::setRenderTransform(res);
+    }
+}
 
 void Item::renderImage(SceneState* state, SceneRenderImage* image)
 {
-   // Client side rotation
-   //if (mRotate) {
-   //   F32 t = Sim::getCurrentTime() * F32(1)/1000;
-   //   F32 r = (t / sRotationSpeed) * M_2PI;
-   //   Point3F pos;
-   //   mRenderObjToWorld.getColumn(3,&pos);
-   //   MatrixF mat = mRenderObjToWorld;
-   //   mat.set(Point3F(0,0,r));
-   //   mat.setColumn(3,pos);
-   //   Parent::setRenderTransform(mat);
-   //}
    Parent::renderImage(state, image);
 
    if (mShadow)

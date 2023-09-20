@@ -146,6 +146,7 @@ class Item: public ShapeBase
    ShapeBase* getCollisionObject()   { return mCollisionObject; };
 
    void processTick(const Move *move);
+   void advanceTime(F32 dt);
    void interpolateTick(F32 delta);
    void setTransform(const MatrixF &mat);
    void renderImage(SceneState *state, SceneRenderImage *image);
