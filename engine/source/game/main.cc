@@ -651,6 +651,8 @@ void DemoGame::processTimeEvent(TimeEvent *event)
     if (elapsedTime > 1024)
         elapsedTime = 1024;
 
+    S32 timeRemaining = elapsedTime;
+
    // alxUpdate is somewhat expensive and does not need to be updated constantly,
     // though it does need to be updated in real time
    static U32 lastAudioUpdate = 0;
@@ -718,9 +720,9 @@ void DemoGame::processTimeEvent(TimeEvent *event)
            static char readBuffer[256];
 
            U32 demoDelta = mDemoTimeDelta;
-           while (elapsedTime > demoDelta)
+           while (timeRemaining > demoDelta)
            {
-               elapsedTime -= demoDelta;
+               timeRemaining -= demoDelta;
                U8 size;
                mDemoReadStream->read(&size);
                mDemoReadStream->read(size, &readBuffer);
@@ -739,14 +741,15 @@ void DemoGame::processTimeEvent(TimeEvent *event)
                if (bs.readFlag())
                    mCurrentMove.unpack(&bs);
                gNextMove = mCurrentMove;
-               U32 demoTime = bs.readInt(10);
-               processElapsedTime(demoTime);
-               mDemoTimeDelta = demoTime;
-               if (elapsedTime < mDemoTimeDelta)
+               U32 timeDelta = bs.readInt(10);
+               processElapsedTime(timeDelta);
+               mDemoTimeDelta = timeDelta;
+               demoDelta = timeDelta;
+               if (timeRemaining <= demoDelta)
                    break;
 
            }
-           mDemoTimeDelta -= elapsedTime;
+           mDemoTimeDelta = demoDelta - timeRemaining;
        }
        else
        {
