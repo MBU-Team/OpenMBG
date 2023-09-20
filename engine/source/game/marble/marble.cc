@@ -55,6 +55,7 @@ Marble::Marble()
     mOmega = Point3D(0, 0, 0);
     mGravityUp = Point3D(0, 0, 1);
     mPosition = Point3D(0, 0, 0);
+    mGenerateShadow = true;
     mMouseZ = 0.0;
     mControllable = 1;
     mBestContact.normal = Point3D(0, 0, 0);
@@ -640,6 +641,7 @@ void Marble::unpackUpdate(NetConnection* conn, BitStream* stream)
             for (int i = 0; i < 6; i++) {
                 if (mPowerUpState[i].active) {
                     mPowerUpState[i].active = false;
+                    unmountImage(i);
                     if (mPowerUpState[i].emitter) {
                         mPowerUpState[i].emitter->deleteWhenEmpty();
                         mPowerUpState[i].emitter = NULL;

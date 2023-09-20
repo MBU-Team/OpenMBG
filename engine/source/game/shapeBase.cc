@@ -2486,7 +2486,7 @@ void ShapeBase::renderImage(SceneState* state, SceneRenderImage* image)
    // Shadow...
    if (mShapeInstance && mCloakLevel == 0.0 &&
        mMount.object == NULL && mGenerateShadow == true &&
-       image->isTranslucent == true)
+       image->isTranslucent == true && !gClientSceneGraph->useStencilShadows)
    {
       // we are shadow enabled...
       renderShadow(dist,fogAmount);
@@ -2648,7 +2648,7 @@ bool ShapeBase::castRay(const Point3F &start, const Point3F &end, RayInfo* info)
 
 bool ShapeBase::buildPolyList(AbstractPolyList* polyList, const Box3F &, const SphereF &)
 {
-   if (mShapeInstance) {
+   if (mShapeInstance && mDamageState != Destroyed || mDataBlock->renderWhenDestroyed) {
       bool ret = false;
 
       polyList->setTransform(&mObjToWorld, mObjScale);

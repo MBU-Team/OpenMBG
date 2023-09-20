@@ -275,7 +275,8 @@ void PathedInterior::renderObject(SceneState* state, SceneRenderImage*)
 
    //mInterior->setupFog(state);
    //gInteriorFogColor = state->getFogColor();
-   mInterior->renderAsShape();
+   mInterior->renderSmooth(mInterior->mMaterialList, &mFastDetail, true, -1, 0);
+   // mInterior->renderAsShape();
 
    //mInterior->clearFog();
    uninstallLights();

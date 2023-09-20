@@ -385,16 +385,16 @@ void Interior::render(const bool useAlarmLighting, MaterialList* pMaterials, con
 
 void Interior::renderSmooth(MaterialList* pMaterials, Interior::ItrFastDetail* fastDetail, bool forceDrawAll, S32 intParam, U32 uintParam)
 {
-    glEnable(3553);
-    glTexEnvi(8960, 8704, 8448);
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     if (intParam == -1)
     {
-        glEnableClientState(32884);
-        glVertexPointer(3, 5126, sizeof(Interior::ItrFastDetail::VertexData), fastDetail->mVertexDatas.address());
-        glEnableClientState(32888);
-        glTexCoordPointer(2, 5126, sizeof(Interior::ItrFastDetail::VertexData), &fastDetail->mVertexDatas.address()->texCoord);
-        glEnableClientState(32885);
-        glNormalPointer(5126, sizeof(Interior::ItrFastDetail::VertexData), &fastDetail->mVertexDatas.address()->normal);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer(3, GL_FLOAT, sizeof(Interior::ItrFastDetail::VertexData), fastDetail->mVertexDatas.address());
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glTexCoordPointer(2, GL_FLOAT, sizeof(Interior::ItrFastDetail::VertexData), &fastDetail->mVertexDatas.address()->texCoord);
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_FLOAT, sizeof(Interior::ItrFastDetail::VertexData), &fastDetail->mVertexDatas.address()->normal);
         if (Interior::smLockArrays && dglDoesSupportCompiledVertexArray())
             glLockArraysEXT(0, fastDetail->mVertexDatas.size());
         if (forceDrawAll)
@@ -413,14 +413,14 @@ void Interior::renderSmooth(MaterialList* pMaterials, Interior::ItrFastDetail* f
 					if (prevTexture != texGLName)
 					{
 						prevTexture = texGLName;
-						glBindTexture(3553, texGLName);
+						glBindTexture(GL_TEXTURE_2D, texGLName);
 					}
 				}
 				else
 				{
-					glBindTexture(3553, 0);
+					glBindTexture(GL_TEXTURE_2D, 0);
 				}
-                glDrawArrays(5, section.start, section.count);
+                glDrawArrays(GL_TRIANGLE_STRIP, section.start, section.count);
             }
         }
         else if (sgActivePolyListSize)
@@ -438,21 +438,21 @@ void Interior::renderSmooth(MaterialList* pMaterials, Interior::ItrFastDetail* f
                     if (prevTexture != texGLName)
                     {
                         prevTexture = texGLName;
-                        glBindTexture(3553, texGLName);
+                        glBindTexture(GL_TEXTURE_2D, texGLName);
                     }
                 }
                 else
                 {
-                    glBindTexture(3553, 0);
+                    glBindTexture(GL_TEXTURE_2D, 0);
                 }
-                glDrawArrays(5, section.start, section.count);
+                glDrawArrays(GL_TRIANGLE_STRIP, section.start, section.count);
             }
         }
         if (Interior::smLockArrays && dglDoesSupportCompiledVertexArray())
             glUnlockArraysEXT();
-        glDisableClientState(32884);
-        glDisableClientState(32888);
-        glDisableClientState(32885);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_NORMAL_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     }
     else if (forceDrawAll)
     {
@@ -470,12 +470,12 @@ void Interior::renderSmooth(MaterialList* pMaterials, Interior::ItrFastDetail* f
                 if (prevTexture != texGLName)
                 {
                     prevTexture = texGLName;
-                    glBindTexture(3553, texGLName);
+                    glBindTexture(GL_TEXTURE_2D, texGLName);
                 }
             }
             else
             {
-                glBindTexture(3553, 0);
+                glBindTexture(GL_TEXTURE_2D, 0);
             }
             // glDrawPrimitivesEXT
         }
@@ -495,18 +495,18 @@ void Interior::renderSmooth(MaterialList* pMaterials, Interior::ItrFastDetail* f
                 if (prevTexture != texGLName)
                 {
                     prevTexture = texGLName;
-                    glBindTexture(3553, texGLName);
+                    glBindTexture(GL_TEXTURE_2D, texGLName);
                 }
             }
             else
             {
-                glBindTexture(3553, 0);
+                glBindTexture(GL_TEXTURE_2D, 0);
             }
         }
         // glDrawPrimitivesEXT
     }
-    glDisable(3553);
-    glTexEnvi(8960, 8704, 7681);
+    glDisable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 }
 
 
