@@ -57,6 +57,9 @@ SceneGraph::SceneGraph(bool isClient)
    addRefPoolBlock();
 
    mCurrDecalManager = NULL;
+
+   useStencilShadows = false;
+   renderingShadows = false;
 }
 
 SceneGraph::~SceneGraph()

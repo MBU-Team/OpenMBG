@@ -92,11 +92,11 @@ U32 Sun::packUpdate(NetConnection *, U32 mask, BitStream * stream)
    {
 
 		// Calculate Light Direction.
-		F32 Yaw = mDegToRad(mClampF(mSunAzimuth,0,359));
-		F32 Pitch = mDegToRad(mClampF(mSunElevation,-360,+360));
-		VectorF sunvec;
-		MathUtils::getVectorFromAngles(sunvec, Yaw, Pitch);
-		mLight.mDirection = -sunvec;
+		//F32 Yaw = mDegToRad(mClampF(mSunAzimuth,0,359));
+		//F32 Pitch = mDegToRad(mClampF(mSunElevation,-360,+360));
+		//VectorF sunvec;
+		//MathUtils::getVectorFromAngles(sunvec, Yaw, Pitch);
+		//mLight.mDirection = -sunvec;
 
       // direction -> color -> ambient
       mathWrite(*stream, mLight.mDirection);
@@ -120,9 +120,9 @@ void Sun::initPersistFields()
 {
 	Parent::initPersistFields();
 	addGroup("Misc");	// MM: Added Group Header.
-		addField( "azimuth",		TypeF32,		Offset( mSunAzimuth,		Sun ) );
-		addField( "elevation",		TypeF32,		Offset( mSunElevation,		Sun ) );
-		//addField( "direction",		TypePoint3F,	Offset(mLight.mDirection,	Sun));
+		//addField( "azimuth",		TypeF32,		Offset( mSunAzimuth,		Sun ) );
+		//addField( "elevation",		TypeF32,		Offset( mSunElevation,		Sun ) );
+		addField( "direction",		TypePoint3F,	Offset(mLight.mDirection,	Sun));
 		addField( "color",			TypeColorF,		Offset(mLight.mColor,		Sun));
 		addField( "ambient",		TypeColorF,		Offset(mLight.mAmbient,		Sun));
 	endGroup("Misc");	// MM: Added Group Footer.

@@ -786,12 +786,8 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
 
    PROFILE_START(IRO_GetZones);
    U32 storedWaterMark = FrameAllocator::getWaterMark();
-   F32 v59[4];
-   v59[0] = 1.0;
-   v59[1] = 1.0;
-   v59[2] = 1.0;
-   v59[3] = 1.0;
-   glMaterialfv(1032, 5634, v59);
+   ColorF oneColor(1, 1, 1, 1);
+   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, oneColor);
    glColor4f(1.0, 1.0, 1.0, 1.0);
    dglSetRenderPrimType(2);
 
@@ -874,6 +870,9 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
    glPushMatrix();
    glMatrixMode(GL_MODELVIEW);
    glPushMatrix();
+
+   installLights();
+
    dglMultMatrix(&mRenderObjToWorld);
    glScalef(mObjScale.x, mObjScale.y, mObjScale.z);
 
@@ -978,6 +977,7 @@ void InteriorInstance::renderObject(SceneState* state, SceneRenderImage* sceneIm
       glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
    }
 
+   uninstallLights();
    glMatrixMode(GL_PROJECTION);
    glPopMatrix();
    dglSetViewport(viewport);

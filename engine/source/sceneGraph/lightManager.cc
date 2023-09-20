@@ -245,12 +245,34 @@ void LightManager::installGLLight(LightInfo * lightInfo)
       // falls through to LightInfo::Ambient
       case LightInfo::Vector:
       {
-         F32 ambientFactor = (ambientColor[0] + ambientColor[1] + ambientColor[2]) / 3.f;
-         F32 factor = mClampF(mVectorLightsAttenuation - ambientFactor, 0.f, 1.f);
+         if (gClientSceneGraph->useStencilShadows)
+         {
+             if (!gClientSceneGraph->renderingShadows)
+             {
+                 glLightfv(light, GL_DIFFUSE, (const GLfloat*)lightColor);
+                 glLightfv(light, GL_POSITION, (const GLfloat*)lightPos);
+                 glLightfv(light, GL_AMBIENT, (const GLfloat*)zeroColor);
+                 glLightfv(light, GL_SPECULAR, (const GLfloat*)zeroColor);
+             }
+             Point3F negDir = -lightInfo->mDirection;
+             m_point3F_normalize(negDir);   
+			 Point4F dir2 = Point4F(negDir.x, negDir.y, negDir.z, 0.0f);
+             ColorF col = lightInfo->mColor * 0.15;
+             col.alpha = 1.0;
+             GLfloat lightCol2[] = {col.red, col.green, col.blue, col.alpha};
+             GLfloat lightDir2[] = { dir2.x, dir2.y, dir2.z, 0.f };
+             glLightfv(light, GL_DIFFUSE, (const GLfloat*)lightCol2);
+             glLightfv(light, GL_AMBIENT, (const GLfloat*)ambientColor);
+             glLightfv(light, GL_POSITION, (const GLfloat*)lightDir2);
+             glLightfv(light, GL_SPECULAR, (const GLfloat*)zeroColor);
+             break;
+         }
+         //F32 ambientFactor = (ambientColor[0] + ambientColor[1] + ambientColor[2]) / 3.f;
+         //F32 factor = mClampF(mVectorLightsAttenuation - ambientFactor, 0.f, 1.f);
 
-         // attenuate (for in shadow...)
-         for(U32 i = 0; i < 3; i++)
-            lightColor[i] *= factor;
+         //// attenuate (for in shadow...)
+         //for(U32 i = 0; i < 3; i++)
+         //   lightColor[i] *= factor;
       }
 
       case LightInfo::Ambient:

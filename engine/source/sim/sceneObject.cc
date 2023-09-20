@@ -1721,42 +1721,42 @@ SceneObject::LightingInfo::LightingInfo()
 //--------------------------------------------------------------------------
 void SceneObject::installLights()
 {
-   // install the lights:
+   //// install the lights:
    LightManager * lightManager = gClientSceneGraph->getLightManager();
    AssertFatal(lightManager!=NULL, "SceneObject::installLights: LightManager not found");
 
-   ColorF ambientColor;
-   if(getLightingAmbientColor(&ambientColor))
-   {
-      switch(mLightingInfo.mLightSource)
-      {
-         case LightingInfo::Interior:
-         {
-            // ambient/directional contributions
-            const F32 directionalFactor = 0.3f;
-            const F32 ambientFactor = 0.7f;
+   //ColorF ambientColor;
+   //if(getLightingAmbientColor(&ambientColor))
+   //{
+   //   switch(mLightingInfo.mLightSource)
+   //   {
+   //      case LightingInfo::Interior:
+   //      {
+   //         // ambient/directional contributions
+   //         const F32 directionalFactor = 0.3f;
+   //         const F32 ambientFactor = 0.7f;
 
-            LightInfo & light = mLightingInfo.smAmbientLight;
+   //         LightInfo & light = mLightingInfo.smAmbientLight;
 
-            light.mType = LightInfo::Ambient;
-      		light.mDirection = VectorF(0.57735f, 0.57735f, -0.57735f);
-            light.mColor = ambientColor * directionalFactor;
-            light.mAmbient = ambientColor * ambientFactor;
+   //         light.mType = LightInfo::Ambient;
+   //   		light.mDirection = VectorF(0.57735f, 0.57735f, -0.57735f);
+   //         light.mColor = ambientColor * directionalFactor;
+   //         light.mAmbient = ambientColor * ambientFactor;
 
-            lightManager->addLight(&mLightingInfo.smAmbientLight);
-            lightManager->setVectorLightsEnabled(false);
+   //         lightManager->addLight(&mLightingInfo.smAmbientLight);
+   //         lightManager->setVectorLightsEnabled(false);
 
-            break;
-         }
+   //         break;
+   //      }
 
-         case LightingInfo::Terrain:
-         {
-            F32 factor = mClampF((ambientColor.red + ambientColor.green + ambientColor.blue) / 3.f, 0.f, 1.f);
-            lightManager->setVectorLightsAttenuation(factor);
-            break;
-         }
-      }
-   }
+   //      case LightingInfo::Terrain:
+   //      {
+   //         F32 factor = mClampF((ambientColor.red + ambientColor.green + ambientColor.blue) / 3.f, 0.f, 1.f);
+   //         lightManager->setVectorLightsAttenuation(factor);
+   //         break;
+   //      }
+   //   }
+   //}
    lightManager->installGLLights(getRenderWorldBox());
 }
 

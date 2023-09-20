@@ -179,6 +179,12 @@ class SceneGraph
 
    Vector<SceneObject*> mWaterList;
    
+public:
+   Vector<SceneObject*> mShadowOccluders;
+   bool useStencilShadows;
+   bool renderingShadows;
+protected:
+   
    void            addRefPoolBlock();
    SceneObjectRef* allocateObjectRef();
    void            freeObjectRef(SceneObjectRef*);
