@@ -640,29 +640,38 @@ bool Interior::buildPolyList(AbstractPolyList* list,
    // Note: transform maps to interior, but scale is itr -> world...
    //       that is why we divide by scale below...
    F32 * f = toItr;
+
    F32 xx = mFabs(f[0]); F32 xy = mFabs(f[4]); F32 xz = mFabs(f[8]);
    F32 yx = mFabs(f[1]); F32 yy = mFabs(f[5]); F32 yz = mFabs(f[9]);
    F32 zx = mFabs(f[2]); F32 zy = mFabs(f[6]); F32 zz = mFabs(f[10]);
+   
    F32 xlen = testBox.max.x - testBox.min.x;
    F32 ylen = testBox.max.y - testBox.min.y;
    F32 zlen = testBox.max.z - testBox.min.z;
+   
    F32 invScalex = 1.0f/scale.x;
    F32 invScaley = 1.0f/scale.y;
    F32 invScalez = 1.0f/scale.z;
+   
    F32 xrad = (xx * xlen + yx * ylen + zx * zlen) * invScalex;
    F32 yrad = (xy * xlen + yy * ylen + zy * zlen) * invScaley;
    F32 zrad = (xz * xlen + yz * ylen + zz * zlen) * invScalez;
+   
    Box3F interiorBox;
    interiorBox.min  = testBox.max+testBox.min;
    interiorBox.min *= 0.5f;
    toItr.mulP(interiorBox.min);
+   
    interiorBox.min.x *= invScalex;
    interiorBox.min.y *= invScaley;
    interiorBox.min.z *= invScalez;
+   
    interiorBox.max = interiorBox.min;
+   
    interiorBox.min.x -= xrad;
    interiorBox.min.y -= yrad;
    interiorBox.min.z -= zrad;
+   
    interiorBox.max.x += xrad;
    interiorBox.max.y += yrad;
    interiorBox.max.z += zrad;
@@ -717,7 +726,7 @@ bool Interior::buildPolyList(AbstractPolyList* list,
                array[k] = list->addPoint(mPoints[mWindings[rSurface.windingStart + k]].point);
                list->vertex(array[k]);
             }
-            list->plane(array[0], array[1], array[2]);
+            list->plane(getFlippedPlane(rSurface.planeIndex));
             list->end();
          }
          else
@@ -735,7 +744,7 @@ bool Interior::buildPolyList(AbstractPolyList* list,
                array[k] = list->addPoint(mPoints[fanVerts[k]].point);
                list->vertex(array[k]);
             }
-            list->plane(array[0], array[1], array[2]);
+            list->plane(getFlippedPlane(rSurface.planeIndex));
             list->end();
          }
       }

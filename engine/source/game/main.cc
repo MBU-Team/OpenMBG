@@ -731,7 +731,7 @@ void DemoGame::processTimeEvent(TimeEvent *event)
                    if (mDemoReadStream)
                        ResourceManager->closeStream(mDemoReadStream);
                    mDemoReadStream = NULL;
-                   Con::executef(1, (char)"onDemoPlayDone");
+                   Con::executef(1, "onDemoPlayDone");
                    break;
                }
                BitStream bs(readBuffer, 256);

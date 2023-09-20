@@ -84,7 +84,7 @@ void ConcretePolyList::plane(U32 v1,U32 v2,U32 v3)
 
 void ConcretePolyList::plane(const PlaneF& p)
 {
-   mPlaneTransformer.transform(p, mPolyPlaneList.last());
+    mPlaneTransformer.transform(p, mPolyList.last().plane);
 }
 
 void ConcretePolyList::plane(const U32 index)

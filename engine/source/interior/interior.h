@@ -349,6 +349,7 @@ class Interior
    static U16  getPlaneIndex(U16 index);
    static bool planeIsFlipped(U16 index);
    const PlaneF& getPlane(U16 index) const;
+   PlaneF getFlippedPlane(const U16 index) const;
 
   private:
    bool areEqualPlanes(U16, U16) const;
@@ -783,6 +784,15 @@ inline const PlaneF& Interior::getPlane(U16 index) const
                "Interior::getPlane: planeIndex out of range");
 
    return mPlanes[index & ~0x8000];
+}
+
+inline PlaneF Interior::getFlippedPlane(const U16 index) const
+{
+    PlaneF plane = getPlane(index);
+    if (Interior::planeIsFlipped(index))
+        plane.neg();
+
+    return plane;
 }
 
 inline U16 Interior::getPlaneIndex(U16 index)
