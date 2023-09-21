@@ -297,6 +297,35 @@ void PathedInterior::renderObject(SceneState* state, SceneRenderImage*)
 
 }
 
+void PathedInterior::renderShadowVolumes(SceneState* state)
+{
+    Point3F shadowLightDir = gClientSceneGraph->getLightManager()->getShadowLightDirection();
+    mWorldToObj.mulV(shadowLightDir);
+    if (shadowLightDir.x != mShadowVolume.mShadowLightDir.x ||
+        shadowLightDir.y != mShadowVolume.mShadowLightDir.y ||
+        shadowLightDir.z != mShadowVolume.mShadowLightDir.z) {
+        mShadowVolume.mShadowLightDir = shadowLightDir;
+        Point3F shadowSunPos = 500 * shadowLightDir;
+        Interior* detail = mInteriorRes->getDetailLevel(0);
+        detail->computeShadowVolume(mShadowVolume, shadowLightDir, 100.0, shadowSunPos);
+    }
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    dglMultMatrix(&mRenderObjToWorld);
+    glScalef(mObjScale.x, mObjScale.y, mObjScale.z);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, sizeof(Point3F), mShadowVolume.mShadowVolumePoints.address());
+    if (Interior::smLockArrays && dglDoesSupportCompiledVertexArray())
+        glLockArraysEXT(0, mShadowVolume.mShadowVolumePoints.size());
+    for (int i = 0; i < mShadowVolume.mShadowVolumes.size(); i++)
+        glDrawElements(GL_TRIANGLE_STRIP, mShadowVolume.mShadowVolumes[i].count, GL_UNSIGNED_INT,
+            &mShadowVolume.mShadowVolumeIndices[mShadowVolume.mShadowVolumes[i].start]);
+    if (Interior::smLockArrays && dglDoesSupportCompiledVertexArray())
+        glUnlockArraysEXT();
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glPopMatrix();
+}
+
 void PathedInterior::resolvePathKey()
 {
    if(mPathKey == 0xFFFFFFFF && !isGhost())
@@ -305,7 +334,7 @@ void PathedInterior::resolvePathKey()
       Point3F pathPos;
       Point3F initialPos;
       mBaseTransform.getColumn(3, &initialPos);
-      //gServerPathManager->getPathPosition(mPathKey, 0, pathPos);
+      gServerPathManager->getPathPosition(mPathKey, 0, pathPos);
       mOffset = initialPos - pathPos;
    }
 }

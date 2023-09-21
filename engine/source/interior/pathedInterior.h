@@ -91,6 +91,7 @@ private:
    Point3F                    mCurrentVelocity;
    bool                       mHasComputedNormals = false;
    Interior::ItrFastDetail    mFastDetail;
+   Interior::ItrShadowVolume  mShadowVolume;
 
    PathedInterior *mNextClientPI;
 
@@ -98,7 +99,7 @@ private:
   protected:
    bool prepRenderImage(SceneState *state, const U32 stateKey, const U32 startZone, const bool modifyBaseZoneState);
    void renderObject(SceneState *state, SceneRenderImage *image);
-   void renderShadowVolumes(SceneState* state) {};
+   void renderShadowVolumes(SceneState* state);
 
   protected:
    bool onAdd();

@@ -91,6 +91,7 @@ class SceneGraph
    /// @{
 
    void renderScene(const U32 objectMask = 0xffffffff);
+   void renderShadowVolumes(SceneState* state);
    void scopeScene(const Point3F& scopePosition,
                    const F32      scopeDistance,
                    NetConnection* netConnection);
@@ -182,7 +183,7 @@ class SceneGraph
 public:
    Vector<SceneObject*> mShadowOccluders;
    bool useStencilShadows;
-   bool renderingShadows;
+   bool notRenderingShadows;
 protected:
    
    void            addRefPoolBlock();

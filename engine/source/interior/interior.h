@@ -484,8 +484,17 @@ class Interior
         Vector<Section> mSections;
         Vector<VertexData> mVertexDatas;
    };
+   struct ShadowVolume
+   {
+       U32 start;
+       U32 count;
+   };
+
    struct ItrShadowVolume {
-       int pad;
+       Vector<U32> mShadowVolumeIndices;
+       Vector<ShadowVolume> mShadowVolumes;
+       Vector<Point3F> mShadowVolumePoints;
+       Point3F mShadowLightDir;
    };
 
    //-------------------------------------- Animated lighting structures

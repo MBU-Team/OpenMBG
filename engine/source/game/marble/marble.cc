@@ -529,6 +529,48 @@ void Marble::setTransform(const MatrixF& mat)
 
 void Marble::renderShadowVolumes(SceneState* state)
 {
+    if (!mShadowGenerated)
+    {
+        mShadowGenerated = true;
+        Point3F shadowLightDir = gClientSceneGraph->getLightManager()->getShadowLightDirection();
+        m_point3F_normalize(shadowLightDir);
+        Point3F dir1(0, 0, 1);
+        if (mDot(dir1, shadowLightDir) == 1.0)
+        {
+            dir1 = Point3F(1, 0, 0);
+        }
+        Point3F dir2 = mCross(shadowLightDir, dir1);
+        dir1 = mCross(shadowLightDir, dir2);
+        m_point3F_normalize_f(dir1, mRadius);
+        m_point3F_normalize_f(dir2, mRadius);
+
+
+        mShadowPoints[0] = 50 * shadowLightDir;
+        for (int i = 1; i < 33; i++)
+        {
+            F32 ang = (i - 1) / 31.0 * M_2PI_F;
+            F32 s, c;
+            mSinCos(ang, s, c);
+            mShadowPoints[i] = s * dir2 + c * dir1;
+        }
+    }
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    MatrixF mpos(true);
+    mpos.setPosition(mRenderObjToWorld.getPosition());
+    dglMultMatrix(&mpos);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, sizeof(Point3F), &mShadowPoints);
+    if (Interior::smLockArrays && dglDoesSupportCompiledVertexArray())
+        glLockArraysEXT(0, 33);
+    glDrawArrays(GL_TRIANGLE_FAN, 1, 32);
+    glFrontFace(GL_CCW);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 33);
+    glFrontFace(GL_CW);
+    if (Interior::smLockArrays && dglDoesSupportCompiledVertexArray())
+        glUnlockArraysEXT();
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glPopMatrix();
 }
 
 bool Marble::pointWithinPoly(const ConcretePolyList::Poly& poly, const Point3F& point)

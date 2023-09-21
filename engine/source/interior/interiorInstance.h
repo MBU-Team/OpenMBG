@@ -155,6 +155,7 @@ class InteriorInstance : public SceneObject
    U32  calcDetailLevel(SceneState*, const Point3F&);
    bool prepRenderImage(SceneState *state, const U32 stateKey, const U32 startZone, const bool modifyBaseZoneState);
    void renderObject(SceneState *state, SceneRenderImage *image);
+   void renderShadowVolumes(SceneState* state);
    bool scopeObject(const Point3F&        rootPosition,
                     const F32             rootDistance,
                     bool*                 zoneScopeState);
@@ -219,6 +220,7 @@ class InteriorInstance : public SceneObject
 
   private:
    Interior::ItrFastDetail              mFastDetails[8];
+   Interior::ItrShadowVolume            mShadowVolume;
    StringTableEntry                     mInteriorFileName;     ///< File name of the interior this instance encapuslates
    U32                                  mInteriorFileHash;     ///< Hash for interior file name, used for sorting
    Resource<InteriorResource>           mInteriorRes;          ///< Interior managed by resource manager

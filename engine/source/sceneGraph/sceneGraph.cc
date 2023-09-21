@@ -59,7 +59,7 @@ SceneGraph::SceneGraph(bool isClient)
    mCurrDecalManager = NULL;
 
    useStencilShadows = false;
-   renderingShadows = false;
+   notRenderingShadows = false;
 }
 
 SceneGraph::~SceneGraph()
@@ -101,6 +101,8 @@ bool SceneGraph::useSpecial = false;
 void SceneGraph::renderScene(const U32 objectMask)
 {
    PROFILE_START(SceneGraphRender);
+   useStencilShadows = Con::getBoolVariable("pref::useStencilShadows");
+
    if (smVisibleDistanceMod > 1.0f)
       smVisibleDistanceMod = 1.0f;
    else if (smVisibleDistanceMod < 0.5f)
@@ -191,13 +193,80 @@ void SceneGraph::renderScene(const U32 objectMask)
    PROFILE_END();
 
    PROFILE_START(TraverseScene);
+   if (useStencilShadows)
+       notRenderingShadows = true;
    traverseSceneTree(pBaseState);
    PROFILE_END();
+
+   if (useStencilShadows)
+   {
+       SceneState* pShadowState = new SceneState(NULL,
+           mCurrZoneEnd,
+           left, right,
+           bottom, top,
+           nearPlane,
+           F64(getVisibleDistanceMod()),
+           viewport,
+           cp,
+           modelview,
+           getFogDistanceMod(),
+           getVisibleDistanceMod(),
+           mFogColor,
+           mNumFogVolumes,
+           mFogVolumes,
+           envMap,
+           smVisibleDistanceMod);
+
+       DetailManager::beginPrepRender();
+
+       buildSceneTree(pShadowState, startObject, startZone, 1, objectMask);
+
+       DetailManager::endPrepRender();
+       notRenderingShadows = false;
+       renderShadowVolumes(pShadowState);
+
+       mLightManager.registerLights(false);
+       traverseSceneTree(pShadowState);
+       
+       glDepthMask(GL_TRUE);
+       glDisable(GL_STENCIL_TEST);
+       glDepthFunc(GL_LESS);
+
+       delete pShadowState;
+   }
 
    delete pBaseState;
    PROFILE_END();
 }
 
+void SceneGraph::renderShadowVolumes(SceneState* state)
+{
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_CULL_FACE);
+    glClear(GL_STENCIL_BUFFER_BIT);
+    glColorMask(0, 0, 0, 0);
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
+    glStencilMask(0xFFFFFFFF);
+    glCullFace(GL_FRONT);
+    glStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
+    for (int i = 0; i < mShadowOccluders.size(); i++)
+    {
+        mShadowOccluders[i]->renderShadowVolumes(state);
+    }
+    glCullFace(GL_BACK);
+    glStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
+    for (int i = 0; i < mShadowOccluders.size(); i++)
+    {
+        mShadowOccluders[i]->renderShadowVolumes(state);
+    }
+    glStencilFunc(GL_EQUAL, 0, 0xFFFFFFFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+    glDepthFunc(GL_LEQUAL);
+    glColorMask(1, 1, 1, 1);
+    return glDisable(GL_CULL_FACE);
+}
 
 //---------------------------
 static bool takeShot = true;
@@ -1010,12 +1079,21 @@ void SceneGraph::zoneRemove(SceneObject* obj)
    obj->mZoneRefHead = NULL;
 }
 
-void SceneGraph::addShadowOccluder(SceneObject*)
+void SceneGraph::addShadowOccluder(SceneObject* so)
 {
+    mShadowOccluders.push_back(so);
 }
 
-void SceneGraph::removeShadowOccluder(SceneObject*)
+void SceneGraph::removeShadowOccluder(SceneObject* so)
 {
+    for (int i = 0; i < mShadowOccluders.size(); i++)
+    {
+		if (mShadowOccluders[i] == so)
+		{
+			mShadowOccluders.erase(i);
+			return;
+		}
+    }
 }
 
 void SceneGraph::setFogColor(ColorF color)

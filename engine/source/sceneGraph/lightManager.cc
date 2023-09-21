@@ -247,7 +247,7 @@ void LightManager::installGLLight(LightInfo * lightInfo)
       {
          if (gClientSceneGraph->useStencilShadows)
          {
-             if (!gClientSceneGraph->renderingShadows)
+             if (!gClientSceneGraph->notRenderingShadows)
              {
                  glLightfv(light, GL_DIFFUSE, (const GLfloat*)lightColor);
                  glLightfv(light, GL_POSITION, (const GLfloat*)lightPos);
