@@ -596,6 +596,8 @@ void Sky::renderObject(SceneState* state, SceneRenderImage*)
    extern bool sgForce16BitTexture;     
    extern bool sgForcePalettedTexture;     
 
+   if (gClientSceneGraph->useStencilShadows && !gClientSceneGraph->notRenderingShadows) return;
+
    if(mLastForce16Bit != sgForce16BitTexture || mLastForcePaletted != sgForcePalettedTexture)
       setVisibility();
 

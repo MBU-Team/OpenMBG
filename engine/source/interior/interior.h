@@ -490,6 +490,13 @@ class Interior
        U32 count;
    };
 
+   struct ShadowThing
+   {
+       U32 a;
+       U32 b;
+       bool c;
+   };
+
    struct ItrShadowVolume {
        Vector<U32> mShadowVolumeIndices;
        Vector<ShadowVolume> mShadowVolumes;
@@ -754,7 +761,7 @@ class Interior
   public:
    void purgeLODData();
    void computeNormals(ItrFastDetail*);
-   void computeShadowVolume(ItrShadowVolume&, Point3F, float, Point3F);
+   void computeShadowVolume(ItrShadowVolume&, Point3F&, F32, Point3F&);
 };
 
 //------------------------------------------------------------------------------

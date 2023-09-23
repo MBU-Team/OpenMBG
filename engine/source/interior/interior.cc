@@ -2203,6 +2203,116 @@ void Interior::computeNormals(ItrFastDetail* fastDetail)
     }
 }
 
+void Interior::computeShadowVolume(ItrShadowVolume& shadowVol, Point3F& shadowLightDir, F32 dist, Point3F& shadowSunPos)
+{
+    shadowVol.mShadowVolumes.clear();
+    shadowVol.mShadowVolumeIndices.clear();
+    shadowVol.mShadowVolumePoints.clear();
+    Vector<int> pointIdx;
+    for (int i = 0; i < mPoints.size(); i++)
+    {
+        pointIdx.push_back(-1);
+    }
+    shadowVol.mShadowVolumePoints.push_back(shadowSunPos);
+
+    U32 curWinding = 0;
+    for (int i = 0; i < mSurfaces.size(); i++)
+    {
+        Surface& surf = mSurfaces[i];
+        PlaneF p = getFlippedPlane(surf.planeIndex);
+        if (p.x * shadowLightDir.x + p.y * shadowLightDir.y + p.z * shadowLightDir.z <= 0.0)
+        {
+            for (int j = 0; j < surf.windingCount; j++)
+            {
+                U32 idx = mWindings[surf.windingStart + j];
+                S32& pointIndex = pointIdx[idx];
+                if (pointIndex == -1)
+                {
+                    pointIndex = shadowVol.mShadowVolumePoints.size();
+                    shadowVol.mShadowVolumePoints.push_back(mPoints[idx].point);
+                }
+                shadowVol.mShadowVolumeIndices.push_back(pointIndex);
+            }
+
+            Interior::ShadowVolume sv;
+            sv.start = curWinding;
+            sv.count = surf.windingCount;
+            curWinding += surf.windingCount;
+            shadowVol.mShadowVolumes.push_back(sv);
+        }
+    }
+    U32 indexBuf[128];
+    Vector<ShadowThing> ptArray;
+    for (int i = 0; i < shadowVol.mShadowVolumes.size(); i++)
+    {
+        ShadowVolume& sv = shadowVol.mShadowVolumes[i];
+        U32 ibSize = 0;
+        for (int j = 0; j < sv.count; j++)
+        {
+            if (j >= 2)
+            {
+                if (j % 2 == 0)
+					indexBuf[sv.count - 1 - (j - 2) / 2] = shadowVol.mShadowVolumeIndices[sv.start + j];
+                else
+                    indexBuf[(j + 1) / 2] = shadowVol.mShadowVolumeIndices[sv.start + j];;
+            }
+            else
+				indexBuf[ibSize++] = shadowVol.mShadowVolumeIndices[sv.start + j];
+        }
+        for (int j = 0; j < sv.count; j++)
+        {
+            U32 nextJ = j + 1;
+			U32 nextI = (j + 1) % sv.count;
+            U32 idx = indexBuf[nextI];
+            ShadowThing thing;
+            if (idx >= indexBuf[nextJ - 1])
+            {
+                thing.a = indexBuf[nextJ - 1];
+                thing.b = indexBuf[nextI];
+                thing.c = false;
+            }
+            else
+            {
+                thing.a = indexBuf[nextI];
+				thing.b = indexBuf[nextJ - 1];
+                thing.c = true;
+            }
+            bool found = false;
+            for (int k = 0; k < ptArray.size(); k++)
+            {
+                if (ptArray[k].a == thing.a && ptArray[k].b == thing.b)
+                {
+                    ptArray.erase(k);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                ptArray.push_back(thing);
+            }
+        }
+    }
+    for (int i = 0; i < ptArray.size(); i++)
+    {
+        if (ptArray[i].c)
+        {
+            shadowVol.mShadowVolumeIndices.push_back(0);
+        }
+        shadowVol.mShadowVolumeIndices.push_back(ptArray[i].a);
+        if (!ptArray[i].c)
+        {
+            shadowVol.mShadowVolumeIndices.push_back(0);
+        }
+        shadowVol.mShadowVolumeIndices.push_back(ptArray[i].b);
+        ShadowVolume v;
+        v.start = curWinding;
+        v.count = 3;
+        curWinding += 3;
+        shadowVol.mShadowVolumes.push_back(v);
+    }
+}
+
 
 //--------------------------------------------------------------------------
 void ZoneVisDeterminer::runFromState(SceneState* state, U32 offset, U32 parentZone)

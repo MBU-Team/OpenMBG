@@ -249,10 +249,12 @@ void LightManager::installGLLight(LightInfo * lightInfo)
          {
              if (!gClientSceneGraph->notRenderingShadows)
              {
-                 glLightfv(light, GL_DIFFUSE, (const GLfloat*)lightColor);
-                 glLightfv(light, GL_POSITION, (const GLfloat*)lightPos);
-                 glLightfv(light, GL_AMBIENT, (const GLfloat*)zeroColor);
-                 glLightfv(light, GL_SPECULAR, (const GLfloat*)zeroColor);
+                 U32 newLight = GL_LIGHT0 + mGLLightCount++;
+				 glLightfv(newLight, GL_POSITION, (const GLfloat*)lightDir);
+                 glLightfv(newLight, GL_DIFFUSE, (const GLfloat*)lightColor);
+                 glLightfv(newLight, GL_AMBIENT, (const GLfloat*)zeroColor);
+                 glLightfv(newLight, GL_SPECULAR, (const GLfloat*)zeroColor);   
+                 glEnable(newLight);
              }
              Point3F negDir = -lightInfo->mDirection;
              m_point3F_normalize(negDir);   

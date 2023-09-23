@@ -281,8 +281,8 @@ bool Marble::onNewDataBlock(GameBaseData* dptr)
 }
 
 void Marble::onRemove() {
-    removeFromScene();
     mSceneManager->removeShadowOccluder(this);
+    removeFromScene();
     if (mRollHandle)
         alxStop(mRollHandle);
     if (mSlipHandle)
@@ -540,7 +540,7 @@ void Marble::renderShadowVolumes(SceneState* state)
             dir1 = Point3F(1, 0, 0);
         }
         Point3F dir2 = mCross(shadowLightDir, dir1);
-        dir1 = mCross(shadowLightDir, dir2);
+        dir1 = mCross(dir2, shadowLightDir);
         m_point3F_normalize_f(dir1, mRadius);
         m_point3F_normalize_f(dir2, mRadius);
 

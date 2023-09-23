@@ -301,7 +301,7 @@ void PathedInterior::renderShadowVolumes(SceneState* state)
 {
     Point3F shadowLightDir = gClientSceneGraph->getLightManager()->getShadowLightDirection();
     mWorldToObj.mulV(shadowLightDir);
-    if (shadowLightDir.x != mShadowVolume.mShadowLightDir.x ||
+    if (shadowLightDir.x != mShadowVolume.mShadowLightDir.x ||  
         shadowLightDir.y != mShadowVolume.mShadowLightDir.y ||
         shadowLightDir.z != mShadowVolume.mShadowLightDir.z) {
         mShadowVolume.mShadowLightDir = shadowLightDir;

@@ -2268,6 +2268,18 @@ void ShapeBase::renderObject(SceneState* state, SceneRenderImage* image)
    }
 
    // render shield effect
+   bool renderingObj = false;
+   bool renderingShadow = false;
+   if (gClientSceneGraph->notRenderingShadows)
+   {
+       renderingObj = true;
+       renderingShadow = false;
+   }
+   else
+   {
+       renderingObj = false;
+       renderingShadow = true;
+   }
    if (mCloakLevel == 0.0f && mFadeVal == 1.0f)
    {
       if (image->isTranslucent == true)
@@ -2287,22 +2299,40 @@ void ShapeBase::renderObject(SceneState* state, SceneRenderImage* image)
       TSShapeInstance::smNoRenderTranslucent    = false;
    }
 
+   if (!gClientSceneGraph->useStencilShadows)
+   {
+       renderingObj = false;
+       renderingShadow = false;
+   }
+
    TSMesh::setOverrideFade( mFadeVal );
 
-   ShapeImageRenderImage* shiri = dynamic_cast<ShapeImageRenderImage*>(image);
-   if (shiri != NULL)
+   if (!renderingObj)
    {
-      renderMountedImage(state, shiri);
-   }
-   else
-   {
-      renderImage(state, image);
-   }
+       if (renderingShadow)
+       {
+           glDisable(GL_STENCIL_TEST);
+       }
+       ShapeImageRenderImage* shiri = dynamic_cast<ShapeImageRenderImage*>(image);
+       if (shiri != NULL)
+       {
+           renderMountedImage(state, shiri);
+       }
+       else
+       {
+           renderImage(state, image);
+       }
 
-   TSMesh::setOverrideFade( 1.0 );
+       if (renderingShadow)
+       {
+           glEnable(GL_STENCIL_TEST);
+       }
 
-   TSShapeInstance::smNoRenderNonTranslucent = false;
-   TSShapeInstance::smNoRenderTranslucent    = false;
+       TSMesh::setOverrideFade(1.0);
+
+       TSShapeInstance::smNoRenderNonTranslucent = false;
+       TSShapeInstance::smNoRenderTranslucent = false;
+   }
 
    dglNPatchEnd();
 
