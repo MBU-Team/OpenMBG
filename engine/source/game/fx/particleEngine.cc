@@ -806,6 +806,9 @@ int QSORT_CALLBACK cmpSortParticles(const void* p1, const void* p2)
 void ParticleEmitter::renderObject(SceneState* state, SceneRenderImage*)
 {
    AssertFatal(dglIsInCanonicalState(), "Error, GL not in canonical state on entry");
+   if (gClientSceneGraph->useStencilShadows && gClientSceneGraph->notRenderingShadows)
+       return;
+
 
    RectI viewport;
    dglGetViewport(&viewport);
@@ -844,7 +847,8 @@ void ParticleEmitter::renderObject(SceneState* state, SceneRenderImage*)
    }
 //   if (orderedVector.size() != 0)
 //      dQsort(orderedVector.address(), orderedVector.size(), sizeof(SortParticle), cmpSortParticles);
-
+   if (gClientSceneGraph->useStencilShadows)
+       glDisable(GL_STENCIL_TEST);
    glEnable(GL_BLEND);
    glEnable(GL_TEXTURE_2D);
    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -903,6 +907,8 @@ void ParticleEmitter::renderObject(SceneState* state, SceneRenderImage*)
    glPopMatrix();
    glMatrixMode(GL_MODELVIEW);
    dglSetViewport(viewport);
+   if (gClientSceneGraph->useStencilShadows)
+       glEnable(GL_STENCIL_TEST);
 
    AssertFatal(dglIsInCanonicalState(), "Error, GL not in canonical state on exit");
 }
