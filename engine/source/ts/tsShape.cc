@@ -1639,8 +1639,8 @@ void TSShape::computeAccelerator(S32 dl)
          }
       }
 
-      AssertFatal(vertRemaps.size() < 256 && faces.size() < 256 && edges.size() < 256,
-                  "Error, ran over the shapebase assumptions about convex hulls.");
+      //AssertFatal(vertRemaps.size() < 256 && faces.size() < 256 && edges.size() < 256,
+      //            "Error, ran over the shapebase assumptions about convex hulls.");
 
       U32 emitStringLen = 1 + vertRemaps.size()  +
                           1 + (edges.size() * 2) +

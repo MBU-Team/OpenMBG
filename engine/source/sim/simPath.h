@@ -81,7 +81,6 @@ class Marker : public SceneObject
   protected:
    bool onAdd();
    void onRemove();
-   void onGroupAdd();
 
    void onEditorEnable();
    void onEditorDisable();

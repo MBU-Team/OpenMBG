@@ -346,11 +346,6 @@ void Marker::onRemove()
    Parent::onRemove();
 }
 
-void Marker::onGroupAdd()
-{
-   mSeqNum = getGroup()->size();
-}
-
 
 /// Enable scoping so we can see this thing on the client.
 void Marker::onEditorEnable()
