@@ -96,10 +96,14 @@ bool Marble::onAdd() {
     mSceneManager->addShadowOccluder(this);
     if (isClientObject())
     {
+        F32 oldVol = mDataBlock->rollHardSound->mDescriptionObject->mDescription.mVolume;
         mDataBlock->rollHardSound->mDescriptionObject->mDescription.mVolume = 0;
         mRollHandle = alxPlay(mDataBlock->rollHardSound, &mObjToWorld);
+        mDataBlock->rollHardSound->mDescriptionObject->mDescription.mVolume = oldVol;
+        F32 oldVol2 = mDataBlock->slipSound->mDescriptionObject->mDescription.mVolume;
         mDataBlock->slipSound->mDescriptionObject->mDescription.mVolume = 0;
         mSlipHandle = alxPlay(mDataBlock->slipSound, &mObjToWorld);
+        mDataBlock->slipSound->mDescriptionObject->mDescription.mVolume = oldVol2;
     }
     else
     {

@@ -1362,15 +1362,15 @@ void alxSourcef(AUDIOHANDLE handle, ALenum pname, ALfloat value)
 
          // volume = SourceVolume * ChannelVolume * MasterVolume
 
-// #ifdef REL_WORKAROUND
-//          ALint val = AL_TRUE;
-//          alGetSourcei(source, AL_SOURCE_ABSOLUTE, &val);
-//          if(val == AL_FALSE)
-// #else
-//          ALint val = AL_FALSE;
-//          alGetSourcei(source, AL_SOURCE_RELATIVE, &val);
-//          if(val == AL_TRUE)
-// #endif
+ #ifdef REL_WORKAROUND
+          ALint val = AL_TRUE;
+          alGetSourcei(source, AL_SOURCE_ABSOLUTE, &val);
+          if(val == AL_FALSE)
+ #else
+          ALint val = AL_FALSE;
+          alGetSourcei(source, AL_SOURCE_RELATIVE, &val);
+          if(val == AL_TRUE)
+ #endif
          {
             F32 vol = mClampF(mSourceVolume[idx] * mAudioTypeVolume[mType[idx]] * mMasterVolume, 0.f, 1.f);
             alSourcef(source, AL_GAIN, Audio::linearToDB(vol) );
@@ -1936,11 +1936,11 @@ void alxUpdateScores(bool sourcesOnly)
 
          pos -= listener;
          F32 dist = pos.magnitudeSafe();
-
-         if(dist >= max)
-            mScore[i] = 0.f;
-         else if(dist > min)
-            mScore[i] *= (max-dist) / (max-min);
+            
+         if (dist >= max)
+             mScore[i] = 0.f;
+         else if (dist > min)
+             mScore[i] = min / dist;
       }
    }
 
@@ -2033,12 +2033,18 @@ void alxUpdateMaxDistance()
       alGetSourcefv(mSource[i], AL_POSITION, (F32*)pos);
 
       F32 dist = 0.f;
+      F32 refDist;
       alGetSourcef(mSource[i], AL_MAX_DISTANCE, &dist);
+      alGetSourcef(mSource[i], AL_REFERENCE_DISTANCE, &refDist);
+      F32 maxDist = dist;
 
       pos -= listener;
-      dist -= pos.len();
 
-      F32 gain = (dist < 0.f) ? 0.f : mSourceVolume[i] * mAudioTypeVolume[mType[i]] * mMasterVolume;
+      F32 atten = (1.0
+          - ((fmaxf(refDist, fminf(maxDist, pos.len())) - refDist)
+              / (maxDist - refDist)));
+
+      F32 gain = (dist < 0.f) ? 0.f : mSourceVolume[i] * mAudioTypeVolume[mType[i]] * mMasterVolume * atten;
       alSourcef(mSource[i], AL_GAIN, Audio::linearToDB(gain));
    }
 }
@@ -2049,7 +2055,7 @@ void alxUpdateMaxDistance()
 void alxUpdate()
 {
    //if(mForceMaxDistanceUpdate)
-   //   alxUpdateMaxDistance();
+   alxUpdateMaxDistance();
 
    alxCloseHandles();
    alxUpdateScores(false);
@@ -2407,8 +2413,8 @@ bool OpenALInit()
 
    // Similiar to DSound Model w/o min distance clamping
    alEnable(AL_DISTANCE_MODEL);
-   alDistanceModel(AL_INVERSE_DISTANCE);
-   alListenerf(AL_GAIN_LINEAR, 1.f);
+   alDistanceModel(0);
+   // alListenerf(AL_GAIN_LINEAR, 1.f);
 
    return true;
 }

@@ -42,7 +42,7 @@ extern "C" {
   #endif
  #endif
  #define ALAPI
- #define ALAPIENTRY 
+ #define ALAPIENTRY __cdecl
  #define AL_CALLBACK
 #endif
 
@@ -76,9 +76,6 @@ ALAPI ALvoid	ALAPIENTRY alGetIntegerv( ALenum param, ALint* data );
 ALAPI ALvoid	ALAPIENTRY alGetFloatv( ALenum param, ALfloat* data );
 ALAPI ALvoid	ALAPIENTRY alGetDoublev( ALenum param, ALdouble* data );
 ALAPI ALubyte*	ALAPIENTRY alGetString( ALenum param );
-
-ALAPI ALvoid	ALAPIENTRY alSetInteger( ALenum pname, ALint value );
-ALAPI ALvoid	ALAPIENTRY alSetDouble( ALenum pname, ALdouble value );
 
 /**
  * Error support.
@@ -300,9 +297,6 @@ ALAPI ALvoid	ALAPIENTRY (*alGetFloatv)( ALenum param, ALfloat* data );
 ALAPI ALvoid	ALAPIENTRY (*alGetDoublev)( ALenum param, ALdouble* data );
 ALAPI ALubyte*	ALAPIENTRY (*alGetString)( ALenum param );
 
-ALAPI ALvoid	ALAPIENTRY (*alSetInteger)( ALenum pname, ALint value );
-ALAPI ALvoid	ALAPIENTRY (*alSetDouble)( ALenum pname, ALdouble value );
-
 /**
  * Error support.
  * Obtain the most recent error generated in the AL state machine.
@@ -481,7 +475,6 @@ ALAPI ALvoid	ALAPIENTRY (*alSourceUnqueueBuffers)( ALuint source, ALsizei n, ALu
 ALAPI ALvoid	ALAPIENTRY (*alDistanceModel)( ALenum value );
 ALAPI ALvoid	ALAPIENTRY (*alDopplerFactor)( ALfloat value );
 ALAPI ALvoid	ALAPIENTRY (*alDopplerVelocity)( ALfloat value );
-
 
 #endif /* AL_NO_PROTOTYPES */
 

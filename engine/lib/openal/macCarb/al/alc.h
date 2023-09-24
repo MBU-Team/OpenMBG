@@ -14,7 +14,7 @@ extern "C" {
  #else
   #define ALCAPI __declspec(dllimport)
   typedef ALCvoid ALCdevice;
-  typedef ALCvoid ALCcontext;
+  typedef ALCvoid	ALCcontext;
  #endif
  #define ALCAPIENTRY __cdecl
 #else
@@ -23,11 +23,11 @@ extern "C" {
    #pragma export on
   #endif
  #endif
- #define ALCAPI 
- #define ALCAPIENTRY 
- typedef ALCvoid ALCdevice;
-  typedef ALCvoid ALCcontext;
+ #define ALCAPI
+ #define ALCAPIENTRY __cdecl
 #endif
+
+
 
 #ifndef ALC_NO_PROTOTYPES
 
