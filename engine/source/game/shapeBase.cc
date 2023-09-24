@@ -2270,16 +2270,7 @@ void ShapeBase::renderObject(SceneState* state, SceneRenderImage* image)
    // render shield effect
    bool renderingObj = false;
    bool renderingShadow = false;
-   if (gClientSceneGraph->notRenderingShadows)
-   {
-       renderingObj = true;
-       renderingShadow = false;
-   }
-   else
-   {
-       renderingObj = false;
-       renderingShadow = true;
-   }
+   bool translucent = false;
    if (mCloakLevel == 0.0f && mFadeVal == 1.0f)
    {
       if (image->isTranslucent == true)
@@ -2291,6 +2282,7 @@ void ShapeBase::renderObject(SceneState* state, SceneRenderImage* image)
       {
          TSShapeInstance::smNoRenderNonTranslucent = false;
          TSShapeInstance::smNoRenderTranslucent    = true;
+         translucent = true;
       }
    }
    else
@@ -2299,10 +2291,23 @@ void ShapeBase::renderObject(SceneState* state, SceneRenderImage* image)
       TSShapeInstance::smNoRenderTranslucent    = false;
    }
 
-   if (!gClientSceneGraph->useStencilShadows)
+   if (!gClientSceneGraph->useStencilShadows || translucent)
    {
        renderingObj = false;
        renderingShadow = false;
+   }
+   else
+   {
+       if (gClientSceneGraph->notRenderingShadows)
+       {
+           renderingObj = true;
+           renderingShadow = false;
+       }
+       else
+       {
+           renderingObj = false;
+           renderingShadow = true;
+       }
    }
 
    TSMesh::setOverrideFade( mFadeVal );

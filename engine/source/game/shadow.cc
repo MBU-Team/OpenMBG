@@ -14,7 +14,7 @@ DepthSortList Shadow::smDepthSortList;
 TextureHandle* Shadow::smGenericShadowTexture = NULL;
 S32 Shadow::smGenericShadowDim = 32;
 S32 Shadow::smInstanceCount = 0;
-U32 Shadow::smShadowMask = TerrainObjectType | InteriorObjectType;
+U32 Shadow::smShadowMask = TerrainObjectType | InteriorObjectType | StaticShapeObjectType;
 F32 Shadow::smShapeDetailScale = 1.0f;
 S32 Shadow::smShapeDetailMin = 2; // never select anything less than this detail unless other value supplied
 F32 Shadow::smSmallestVisibleSize = 6.0f; // stop drawing shadows when less than 6 pixels in size

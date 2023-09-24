@@ -2057,9 +2057,10 @@ void Marble::advanceCamera(const Move* move, U32 timeDelta)
             mCameraPitch -= fminf(mCameraPitch - 0.7, dt * 0.0015625);
     }
     else
+    {
         mCameraPitch += move->pitch;
-    
-    mCameraYaw += move->yaw;
+        mCameraYaw += move->yaw;
+    }
     if (mCameraPitch > 1.5)
         mCameraPitch = 1.5;
     if (mCameraPitch < -0.95)
