@@ -986,7 +986,8 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
 
         mPolyList.clear();
         for (int i = 0; i < queryList.mList.size(); i++) {
-            queryList.mList[i]->buildPolyList(&mPolyList, box, sphere);
+            if (testPIs || dynamic_cast<PathedInterior*>(queryList.mList[i]) == NULL)
+                queryList.mList[i]->buildPolyList(&mPolyList, box, sphere);
         }
     }
 
