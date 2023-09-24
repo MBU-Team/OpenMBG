@@ -306,7 +306,7 @@ void PathedInterior::renderShadowVolumes(SceneState* state)
         shadowLightDir.z != mShadowVolume.mShadowLightDir.z) {
         mShadowVolume.mShadowLightDir = shadowLightDir;
         Point3F shadowSunPos = 500 * shadowLightDir;
-        Interior* detail = mInteriorRes->getDetailLevel(0);
+        Interior* detail = mInteriorRes->getSubObject(mInteriorResIndex);
         detail->computeShadowVolume(mShadowVolume, shadowLightDir, 100.0, shadowSunPos);
     }
     glMatrixMode(GL_MODELVIEW);

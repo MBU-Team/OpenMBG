@@ -1924,75 +1924,70 @@ void Marble::advancePhysics(const Move* move, U32 timeDelta)
 
         double timeStep = (double)((long double)timeStepInt) / 1000.0;
         
-        if (timeStep != 0.0)
+        while (timeStep != 0.0)
         {
-            while (true)
+            Point3D aControl;
+            Point3D desiredOmega;
+
+            bool isCentered = computeMoveForces(aControl, desiredOmega, move);
+            findContacts(StaticObjectType | TerrainObjectType | InteriorObjectType | WaterObjectType | StaticShapeObjectType);
+
+            bool stoppedPaths = false;
+            velocityCancel(isCentered, false, bouncedYet, stoppedPaths);
+
+            Point3D A = getExternalForces(move, timeStep);
+
+            Point3D a(0, 0, 0);
+            bool foundBestContact = false;
+            applyContactForces(move, isCentered, aControl, desiredOmega, timeStep, A, a, slipAmount, foundBestContact);
+
+            mVelocity += A * timeStep;
+            mOmega += a * timeStep;
+
+            mMoveTime = timeStep;
+            if (mMode == 2)
             {
-                Point3D aControl;
-                Point3D desiredOmega;
-
-                bool isCentered = computeMoveForces(aControl, desiredOmega, move);
-                findContacts(StaticObjectType | TerrainObjectType | InteriorObjectType | WaterObjectType | StaticShapeObjectType | PlayerObjectType);
-
-                bool stoppedPaths = false;
-                velocityCancel(isCentered, false, bouncedYet, stoppedPaths);
-
-                Point3D A = getExternalForces(move, timeStep);
-
-                Point3D a(0, 0, 0);
-                bool foundBestContact = false;
-                applyContactForces(move, isCentered, aControl, desiredOmega, timeStep, A, a, slipAmount, foundBestContact);
-
-                mVelocity += A * timeStep;
-                mOmega += a * timeStep;
-
-                mMoveTime = timeStep;
-                if (mMode == 2)
-                {
-                    mVelocity.y = 0.0;
-                    mVelocity.x = 0.0;
-                }
-
-                velocityCancel(isCentered, true, bouncedYet, stoppedPaths);
-
-                computeFirstPlatformIntersect(mMoveTime);
-                testMove(mVelocity, mPosition, mMoveTime, mRadius, 0x601D, false);
-                F64 moveTime;
-                if (timeStep == mMoveTime)
-                {
-                    moveTime = timeStep;
-                }
-                else
-                {
-                    mVelocity -= A * (timeStep - mMoveTime);
-                    mOmega -= a * (timeStep - mMoveTime);
-                    moveTime = mMoveTime;
-                }
-                if (mContacts.size())
-                    contactTime += moveTime;
-                if (foundBestContact)
-                {
-                    mGroundTime += moveTime * 1000;
-                    if (mGroundTime > 250)
-                        mGroundTime = 250;
-                }
-                else
-                {
-                    if (mGroundTime <= moveTime)
-                        mGroundTime = 0;
-                    else
-                        mGroundTime -= moveTime;
-                }
-                for (auto pi = PathedInterior::getClientPathedInteriors(); pi; pi = pi->getNext())
-                    pi->advance(moveTime * 1000);
-
-                F64 timeDiff = timeStep - moveTime;
-                timeStep -= moveTime;
-                if (++it > 10 || timeDiff == 0.0)
-                    break;
+                mVelocity.y = 0.0;
+                mVelocity.x = 0.0;
             }
+
+            velocityCancel(isCentered, true, bouncedYet, stoppedPaths);
+
+            computeFirstPlatformIntersect(mMoveTime);
+            testMove(mVelocity, mPosition, mMoveTime, mRadius, StaticObjectType | TerrainObjectType | InteriorObjectType | WaterObjectType | StaticShapeObjectType, false);
+            F64 moveTime;
+            if (timeStep == mMoveTime)
+            {
+                moveTime = timeStep;
+            }
+            else
+            {
+                mVelocity -= A * (timeStep - mMoveTime);
+                mOmega -= a * (timeStep - mMoveTime);
+                moveTime = mMoveTime;
+            }
+            if (mContacts.size())
+                contactTime += moveTime;
+            if (foundBestContact)
+            {
+                mGroundTime += moveTime * 1000;
+                if (mGroundTime > 250)
+                    mGroundTime = 250;
+            }
+            else
+            {
+                if (mGroundTime <= moveTime)
+                    mGroundTime = 0;
+                else
+                    mGroundTime -= moveTime;
+            }
+            for (auto pi = PathedInterior::getClientPathedInteriors(); pi; pi = pi->getNext())
+                pi->advance(moveTime * 1000);
+
+            timeStep -= moveTime;
+            if (++it > 10)
+                break;
         }
-        
     } while (timeRemaining);
 
     if (move->trigger[1])
