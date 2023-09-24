@@ -194,6 +194,26 @@ function Tree(%obj)
    InspectTreeView.open(%obj);
 }
 
+// MM: Added Dynamic group toggle support.
+function GuiInspector::toggleDynamicGroupScript(%this, %obj)
+{
+   %this.toggleDynamicGroupExpand();
+   %this.inspect(%obj);
+}
+// MM: Added group toggle support.
+function GuiInspector::toggleGroupScript(%this, %obj, %fieldName)
+{
+   %this.toggleGroupExpand(%obj, %fieldName);
+   %this.inspect(%obj);
+}
+
+// MM: Set All Group State support.
+function GuiInspector::setAllGroupStateScript(%this, %obj, %groupState)
+{
+   %this.setAllGroupState(%groupState);
+   %this.inspect(%obj);
+}
+
 function GuiInspector::addDynamicField(%this, %obj)
 {
    InspectAddFieldDlg.object = %obj;
