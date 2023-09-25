@@ -465,7 +465,7 @@ bool GuiControl::onWake() {
    //increment the profile
    mProfile->incRefCount();
 
-   Con::executef(this, 1, "onWake");
+   // Con::executef(this, 1, "onWake");
 
    return true;
 }
@@ -482,7 +482,7 @@ void GuiControl::onSleep()
    mouseUnlock();
 
    //set the flag
-   Con::executef(this, 1, "onSleep");
+   // Con::executef(this, 1, "onSleep");
    mAwake = false;
 }
 

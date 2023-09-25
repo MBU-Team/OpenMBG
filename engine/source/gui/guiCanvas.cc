@@ -777,20 +777,22 @@ void GuiCanvas::setContentControl(GuiControl *gui)
          index++;
 
       removeObject(ctrl);
+      Con::executef(ctrl, 1, "onSleep");
       Sim::getGuiGroup()->addObject(ctrl);
    }
 
    // lose the first responder from the old GUI
-   GuiControl *oldResponder = mFirstResponder;
-   mFirstResponder = gui->findFirstTabable();
-   if(oldResponder && oldResponder != mFirstResponder)
-      oldResponder->onLoseFirstResponder();
+   //GuiControl *oldResponder = mFirstResponder;
+   //mFirstResponder = gui->findFirstTabable();
+   //if(oldResponder && oldResponder != mFirstResponder)
+   //   oldResponder->onLoseFirstResponder();
 
    //add the gui to the front
    if(!size() || gui != (*this)[0])
    {
       // automatically wakes objects in GuiControl::onWake
       addObject(gui);
+	  Con::executef(gui, 1, "onWake");
       if (size() >= 2)
          reOrder(gui, *begin());
    }
@@ -856,8 +858,8 @@ void GuiCanvas::pushDialogControl(GuiControl *gui, S32 layer)
       oldResponder->onLoseFirstResponder();
       
    // call the 'onWake' method?
-   //if(wakedGui)
-   //   Con::executef(gui, 1, "onWake");
+   if(wakedGui)
+      Con::executef(gui, 1, "onWake");
    
    //refresh the entire gui
    resetUpdateRegions();
@@ -904,6 +906,9 @@ void GuiCanvas::popDialogControl(GuiControl *gui)
    
    // sleep the object
    bool didSleep = ctrl->isAwake();
+
+   if (didSleep)
+       Con::executef(gui, 1, "onSleep");
    
    //now pop the last child (will sleep if awake)
    removeObject(ctrl);

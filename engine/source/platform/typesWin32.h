@@ -97,9 +97,5 @@ static const F32 F32_MIN = F32(1.175494351e-38F);                 ///< Constant 
 static const F32 F32_MAX = F32(3.402823466e+38F);                 ///< Constant Max Limit F32
 
 
-#ifdef _MSC_VER
-#define for if(false) {} else for   ///< Hack to work around Microsoft VC's non-C++ compliance on variable scoping
-#endif
-
 
 #endif //_NTYPES_H_
