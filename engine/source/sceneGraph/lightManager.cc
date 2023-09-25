@@ -298,7 +298,7 @@ void LightManager::installGLLight(LightInfo * lightInfo)
          glLightf(light, GL_SPOT_CUTOFF, 180.f);
 
          glLightf(light, GL_CONSTANT_ATTENUATION, 0.f);
-         glLightf(light, GL_LINEAR_ATTENUATION, 1.0f);
+         glLightf(light, GL_LINEAR_ATTENUATION, 1.0f / lightInfo->mRadius);
          glLightf(light, GL_QUADRATIC_ATTENUATION, 0.f);
 
          break;
