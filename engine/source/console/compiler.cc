@@ -30,21 +30,21 @@ extern void CMD_reset();
 
 CodeBlock* CodeBlock::sCurrentCodeBlock = NULL;
 
-static U32 evalSTEtoU32(StringTableEntry ste, U32)
+static dsize_t evalSTEtoU32(StringTableEntry ste, U32)
 {
-   return *((U32 *) &ste);
+   return *((dsize_t*) &ste);
 }
 
 static CompilerIdentTable gIdentTable;
 
-static U32 compileSTEtoU32(StringTableEntry ste, U32 ip)
+static dsize_t compileSTEtoU32(StringTableEntry ste, U32 ip)
 {
    if(ste)
       gIdentTable.add(ste, ip);
    return 0;
 }
 
-U32 (*STEtoU32)(StringTableEntry ste, U32 ip) = evalSTEtoU32;
+dsize_t(*STEtoU32)(StringTableEntry ste, U32 ip) = evalSTEtoU32;
 
 
 //------------------------------------------------------------
@@ -120,7 +120,7 @@ void CodeBlock::clearAllBreaks()
       return;
    for(U32 i = 0; i < lineBreakPairCount; i++)
    {
-      U32 *p = lineBreakPairs + i * 2;
+      dsize_t *p = lineBreakPairs + i * 2;
       code[p[1]] = p[0] & 0xFF;
    }
 }
@@ -131,7 +131,7 @@ void CodeBlock::clearBreakpoint(U32 lineNumber)
       return;
    for(U32 i = 0; i < lineBreakPairCount; i++)
    {
-      U32 *p = lineBreakPairs + i * 2;
+      dsize_t *p = lineBreakPairs + i * 2;
       if((p[0] >> 8) == lineNumber)
       {
          code[p[1]] = p[0] & 0xFF;
@@ -146,7 +146,7 @@ void CodeBlock::setAllBreaks()
       return;
    for(U32 i = 0; i < lineBreakPairCount; i++)
    {
-      U32 *p = lineBreakPairs + i * 2;
+      dsize_t *p = lineBreakPairs + i * 2;
       code[p[1]] = OP_BREAK;
    }
 }
@@ -157,7 +157,7 @@ void CodeBlock::setBreakpoint(U32 lineNumber)
       return;
    for(U32 i = 0; i < lineBreakPairCount; i++)
    {
-      U32 *p = lineBreakPairs + i * 2;
+      dsize_t *p = lineBreakPairs + i * 2;
       if((p[0] >> 8) == lineNumber)
       {
          code[p[1]] = OP_BREAK;
@@ -246,7 +246,7 @@ void CodeBlock::calcBreakList()
    U32 i;
    for(i = 0; i < lineBreakPairCount; i++)
    {
-      U32 lineNumber = lineBreakPairs[i * 2];
+      dsize_t lineNumber = lineBreakPairs[i * 2];
       if(lineNumber == U32(line + 1))
          seqCount++;
       else
@@ -268,7 +268,7 @@ void CodeBlock::calcBreakList()
    size = 0;
    for(i = 0; i < lineBreakPairCount; i++)
    {
-      U32 lineNumber = lineBreakPairs[i * 2];
+       dsize_t lineNumber = lineBreakPairs[i * 2];
       if(lineNumber == U32(line + 1))
          seqCount++;
       else
@@ -284,8 +284,8 @@ void CodeBlock::calcBreakList()
       breakList[size++] = seqCount;
    for(i = 0; i < lineBreakPairCount; i++)
    {
-      U32 *p = lineBreakPairs + i * 2;
-      p[0] = (p[0] << 8) | code[p[1]];
+      dsize_t* p = lineBreakPairs + i * 2;
+          p[0] = (p[0] << 8) | code[p[1]];
    }
 }
 
@@ -339,20 +339,25 @@ bool CodeBlock::read(StringTableEntry fileName, Stream &st)
    st.read(&lineBreakPairCount);
    
    U32 totSize = codeSize + lineBreakPairCount * 2;
-   code = new U32[totSize];
+   code = new dsize_t[totSize];
 
    for(i = 0; i < codeSize; i++)
    {
       U8 b;
       st.read(&b);
-      if(b == 0xFF)
-         st.read(&code[i]);
+      if (b == 0xFF) 
+      {
+          code[i] = 0;
+          st.read((U32*)&code[i]);
+      }
       else
          code[i] = b;
    }
       
-   for(i = codeSize; i < totSize; i++)
-      st.read(&code[i]);
+   for (i = codeSize; i < totSize; i++) {
+       code[i] = 0;
+       st.read((U32*)&code[i]);
+   }
 
    lineBreakPairs = code + codeSize;
    
@@ -373,7 +378,7 @@ bool CodeBlock::read(StringTableEntry fileName, Stream &st)
       {
          U32 ip;
          st.read(&ip);
-         code[ip] = *((U32 *) &ste);
+         code[ip] = *((dsize_t *) &ste);
       }
    }
    if(lineBreakPairCount)
@@ -423,7 +428,7 @@ bool CodeBlock::compile(const char *codeFileName, StringTableEntry fileName, con
       codeSize = 1;
       
    lineBreakPairCount = breakLineCount;
-   code = new U32[codeSize + breakLineCount * 2];
+   code = new dsize_t[codeSize + breakLineCount * 2];
    lineBreakPairs = code + codeSize;
    
    gGlobalStringTable.write(st);
@@ -454,11 +459,11 @@ bool CodeBlock::compile(const char *codeFileName, StringTableEntry fileName, con
       else
       {
          st.write(U8(0xFF));
-         st.write(code[i]);
+         st.write((U32)code[i]);
       }
    }
    for(i = codeSize; i < totSize; i++)
-      st.write(code[i]);
+      st.write((U32)code[i]);
    
    gIdentTable.write(st);
    
@@ -507,7 +512,7 @@ const char *CodeBlock::compileExec(StringTableEntry fileName, const char *string
    globalFloats = gGlobalFloatTable.build();
    functionFloats = gFunctionFloatTable.build();
    
-   code = new U32[codeSize + lineBreakPairCount * 2];
+   code = new dsize_t[codeSize + lineBreakPairCount * 2];
    lineBreakPairs = code + codeSize;
    
    breakLineCount = 0;
@@ -737,7 +742,7 @@ U32 precompileBlock(StmtNode *block, U32 loopCount)
    return sum;
 }
 
-U32 compileBlock(StmtNode *block, U32 *codeStream, U32 ip, U32 continuePoint, U32 breakPoint)
+U32 compileBlock(StmtNode *block, dsize_t* codeStream, U32 ip, U32 continuePoint, U32 breakPoint)
 {
    for(StmtNode *walk = block; walk; walk = walk->getNext())
       ip = walk->compileStmt(codeStream, ip, continuePoint, breakPoint);
@@ -752,7 +757,7 @@ void StmtNode::append(StmtNode *next)
    walk->next = next;
 }
 
-U32 ExprNode::compileX(U32 *codeStream, U32 ip, TypeReq type)
+U32 ExprNode::compileX(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    U32 size = precompile(type);
    U32 start = ip;
@@ -1145,7 +1150,7 @@ U32 BreakStmtNode::precompileStmt(U32 loopCount)
    return 0;
 }
 
-U32 BreakStmtNode::compileStmt(U32 *codeStream, U32 ip, U32, U32 breakPoint)
+U32 BreakStmtNode::compileStmt(dsize_t* codeStream, U32 ip, U32, U32 breakPoint)
 {
    if(breakPoint)
    {
@@ -1169,7 +1174,7 @@ U32 ContinueStmtNode::precompileStmt(U32 loopCount)
    return 0;
 }
 
-U32 ContinueStmtNode::compileStmt(U32 *codeStream, U32 ip, U32 continuePoint, U32)
+U32 ContinueStmtNode::compileStmt(dsize_t* codeStream, U32 ip, U32 continuePoint, U32)
 {
    if(continuePoint)
    {
@@ -1188,7 +1193,7 @@ U32 ExprNode::precompileStmt(U32)
    return precompile(TypeReqNone);
 }
 
-U32 ExprNode::compileStmt(U32 *codeStream, U32 ip, U32, U32)
+U32 ExprNode::compileStmt(dsize_t* codeStream, U32 ip, U32, U32)
 {
    addBreakLine(ip);
    return compile(codeStream, ip, TypeReqNone);
@@ -1205,7 +1210,7 @@ U32 ReturnStmtNode::precompileStmt(U32)
       return 1 + expr->precompile(TypeReqString);
 }
 
-U32 ReturnStmtNode::compileStmt(U32 *codeStream, U32 ip, U32, U32)
+U32 ReturnStmtNode::compileStmt(dsize_t* codeStream, U32 ip, U32, U32)
 {
    addBreakLine(ip);
    if(!expr)
@@ -1268,7 +1273,7 @@ U32 IfStmtNode::precompileStmt(U32 loopCount)
    return endifOffset;
 }
 
-U32 IfStmtNode::compileStmt(U32 *codeStream, U32 ip, U32 continuePoint, U32 breakPoint)
+U32 IfStmtNode::compileStmt(dsize_t* codeStream, U32 ip, U32 continuePoint, U32 breakPoint)
 {
    U32 start = ip;
    addBreakLine(ip);
@@ -1353,7 +1358,7 @@ U32 LoopStmtNode::precompileStmt(U32 loopCount)
    return breakOffset;
 }
 
-U32 LoopStmtNode::compileStmt(U32 *codeStream, U32 ip, U32, U32)
+U32 LoopStmtNode::compileStmt(dsize_t* codeStream, U32 ip, U32, U32)
 {
    addBreakLine(ip);
    U32 start = ip;
@@ -1400,7 +1405,7 @@ U32 ConditionalExprNode::precompile(TypeReq type)
           falseExpr->precompile(type) + 4;
 }
 
-U32 ConditionalExprNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 ConditionalExprNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    ip = testExpr->compile(codeStream, ip, integer ? TypeReqUInt : TypeReqFloat);
    codeStream[ip++] = integer ? OP_JMPIFNOT : OP_JMPIFFNOT;
@@ -1430,7 +1435,7 @@ U32 FloatBinaryExprNode::precompile(TypeReq type)
    return addSize;
 }
 
-U32 FloatBinaryExprNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 FloatBinaryExprNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    ip = right->compile(codeStream, ip, TypeReqFloat);
    ip = left->compile(codeStream, ip, TypeReqFloat);
@@ -1532,7 +1537,7 @@ U32 IntBinaryExprNode::precompile(TypeReq type)
    return addSize;
 }
 
-U32 IntBinaryExprNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 IntBinaryExprNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    if(operand == OP_OR || operand == OP_AND)
    {
@@ -1575,7 +1580,7 @@ U32 StreqExprNode::precompile(TypeReq type)
    return addSize;
 }
 
-U32 StreqExprNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 StreqExprNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    ip = left->compile(codeStream, ip, TypeReqString);
    codeStream[ip++] = OP_ADVANCE_STR_NUL;
@@ -1606,7 +1611,7 @@ U32 StrcatExprNode::precompile(TypeReq type)
    return addSize;
 }
 
-U32 StrcatExprNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 StrcatExprNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    ip = left->compile(codeStream, ip, TypeReqString);
    if(!appendChar)
@@ -1640,7 +1645,7 @@ U32 CommaCatExprNode::precompile(TypeReq type)
    return addSize;
 }
 
-U32 CommaCatExprNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 CommaCatExprNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    ip = left->compile(codeStream, ip, TypeReqString);
    codeStream[ip++] = OP_ADVANCE_STR_COMMA;
@@ -1676,7 +1681,7 @@ U32 IntUnaryExprNode::precompile(TypeReq type)
       return exprSize + 1;
 }
 
-U32 IntUnaryExprNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 IntUnaryExprNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    ip = expr->compile(codeStream, ip, integer ? TypeReqUInt : TypeReqFloat);
    if(op == '!')
@@ -1704,7 +1709,7 @@ U32 FloatUnaryExprNode::precompile(TypeReq type)
       return exprSize + 1;
 }
 
-U32 FloatUnaryExprNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 FloatUnaryExprNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    ip = expr->compile(codeStream, ip, TypeReqFloat);
    codeStream[ip++] = OP_NEG;
@@ -1745,7 +1750,7 @@ U32 VarNode::precompile(TypeReq type)
       return 3;
 }
 
-U32 VarNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 VarNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    if(type == TypeReqNone)
       return ip;
@@ -1793,7 +1798,7 @@ U32 IntNode::precompile(TypeReq type)
    return 2;
 }
 
-U32 IntNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 IntNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    switch(type)
    {
@@ -1831,7 +1836,7 @@ U32 FloatNode::precompile(TypeReq type)
    return 2;
 }
 
-U32 FloatNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 FloatNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    switch(type)
    {
@@ -1874,7 +1879,7 @@ U32 StrConstNode::precompile(TypeReq type)
    return 2;
 }
 
-U32 StrConstNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 StrConstNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    switch(type)
    {
@@ -1917,7 +1922,7 @@ U32 ConstantNode::precompile(TypeReq type)
    return 2;
 }
 
-U32 ConstantNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 ConstantNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    switch(type)
    {
@@ -1986,7 +1991,7 @@ U32 AssignExprNode::precompile(TypeReq type)
       return retSize + addSize + 3;
 }
 
-U32 AssignExprNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 AssignExprNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    ip = expr->compile(codeStream, ip, subType);
    if(arrayIndex)
@@ -2116,7 +2121,7 @@ U32 AssignOpExprNode::precompile(TypeReq type)
    }
 }
 
-U32 AssignOpExprNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 AssignOpExprNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    ip = expr->compile(codeStream, ip, subType);
    if(!arrayIndex)
@@ -2157,7 +2162,7 @@ U32 TTagSetStmtNode::precompileStmt(U32 loopCount)
    return 0;
 }
    
-U32 TTagSetStmtNode::compileStmt(U32*, U32 ip, U32, U32)
+U32 TTagSetStmtNode::compileStmt(dsize_t*, U32 ip, U32, U32)
 {
    return ip;
 }
@@ -2169,7 +2174,7 @@ U32 TTagDerefNode::precompile(TypeReq)
    return 0;
 }
 
-U32 TTagDerefNode::compile(U32*, U32 ip, TypeReq)
+U32 TTagDerefNode::compile(dsize_t*, U32 ip, TypeReq)
 {
    return ip;
 }
@@ -2186,7 +2191,7 @@ U32 TTagExprNode::precompile(TypeReq)
    return 0;
 }
 
-U32 TTagExprNode::compile(U32*, U32 ip, TypeReq)
+U32 TTagExprNode::compile(dsize_t*, U32 ip, TypeReq)
 {
    return ip;
 }
@@ -2219,7 +2224,7 @@ U32 FuncCallExprNode::precompile(TypeReq type)
    return size + 5;
 }
 
-U32 FuncCallExprNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 FuncCallExprNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    codeStream[ip++] = OP_PUSH_FRAME;
    for(ExprNode *walk = args; walk; walk = (ExprNode *) walk->getNext())
@@ -2272,7 +2277,7 @@ U32 SlotAccessNode::precompile(TypeReq type)
    return size + 1;
 }
 
-U32 SlotAccessNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 SlotAccessNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    if(type == TypeReqNone)
       return ip;
@@ -2362,7 +2367,7 @@ U32 SlotAssignNode::precompile(TypeReq type)
    return size + 1;
 }
 
-U32 SlotAssignNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 SlotAssignNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    ip = valueExpr->compile(codeStream, ip, TypeReqString);
    codeStream[ip++] = OP_ADVANCE_STR;
@@ -2436,7 +2441,7 @@ U32 SlotAssignOpNode::precompile(TypeReq type)
       return size + 6 + objectExpr->precompile(TypeReqString);
 }
 
-U32 SlotAssignOpNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 SlotAssignOpNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    ip = valueExpr->compile(codeStream, ip, subType);
    if(arrayExpr)
@@ -2527,7 +2532,7 @@ U32 ObjectDeclNode::precompile(TypeReq type)
    return ret;
 }
 
-U32 ObjectDeclNode::compileSubObject(U32 *codeStream, U32 ip, bool root)
+U32 ObjectDeclNode::compileSubObject(dsize_t* codeStream, U32 ip, bool root)
 {
    U32 start = ip;
    codeStream[ip++] = OP_PUSH_FRAME;
@@ -2557,7 +2562,7 @@ U32 ObjectDeclNode::compileSubObject(U32 *codeStream, U32 ip, bool root)
    return ip;
 }
 
-U32 ObjectDeclNode::compile(U32 *codeStream, U32 ip, TypeReq type)
+U32 ObjectDeclNode::compile(dsize_t* codeStream, U32 ip, TypeReq type)
 {
    codeStream[ip++] = OP_LOADIMMED_UINT;
    codeStream[ip++] = 0;
@@ -2603,7 +2608,7 @@ U32 FunctionDeclStmtNode::precompileStmt(U32)
    return endOffset;
 }
 
-U32 FunctionDeclStmtNode::compileStmt(U32 *codeStream, U32 ip, U32, U32)
+U32 FunctionDeclStmtNode::compileStmt(dsize_t* codeStream, U32 ip, U32, U32)
 {
    U32 start = ip;
    codeStream[ip++] = OP_FUNC_DECL;

@@ -126,11 +126,11 @@ public:
    F64 *functionFloats;
    
    U32 codeSize;
-   U32 *code;
+   dsize_t* code;
 
    U32 refCount;
    U32 lineBreakPairCount;
-   U32 *lineBreakPairs;
+   dsize_t* lineBreakPairs;
    U32 breakListSize;
    U32 *breakList;
    CodeBlock *nextFile;
@@ -163,7 +163,7 @@ extern CodeBlock *codeBlockList;
 
 extern F64 consoleStringToNumber(const char *str, StringTableEntry file = 0, U32 line = 0);
 extern U32 precompileBlock(StmtNode *block, U32 loopCount);
-extern U32 compileBlock(StmtNode *block, U32 *codeStream, U32 ip, U32 continuePoint, U32 breakPoint);
+extern U32 compileBlock(StmtNode *block, dsize_t* codeStream, U32 ip, U32 continuePoint, U32 breakPoint);
 
 struct CompilerIdentTable
 {
@@ -227,9 +227,9 @@ struct CompilerFloatTable
 
 extern CompilerFloatTable *currentFloatTable, gGlobalFloatTable, gFunctionFloatTable;
 
-extern U32 (*STEtoU32)(StringTableEntry ste, U32 ip);
+extern dsize_t (*STEtoU32)(StringTableEntry ste, U32 ip);   
 
-inline StringTableEntry U32toSTE(U32 u)
+inline StringTableEntry U32toSTE(dsize_t u)
 {
    return *((StringTableEntry *) &u);
 }

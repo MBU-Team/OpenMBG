@@ -1013,7 +1013,7 @@ breakContinue:
                STR.getArgcArgv(fnName, &callArgc, &callArgv);
                break;
             }
-            code[ip+1] = *((U32 *) &nsEntry); // fall through
+            code[ip+1] = *((dsize_t*) &nsEntry); // fall through
             code[ip-1] = OP_CALLFUNC;
          case OP_CALLFUNC:
          {

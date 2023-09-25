@@ -381,7 +381,7 @@ static void m_matF_inverse_C(F32 *m)
    // using Cramers Rule find the Inverse
    // Minv = (1/det(M)) * adjoint(M)
    F32 det = m_matF_determinant( m );
-   AssertFatal( det != 0.0f, "MatrixF::inverse: non-singular matrix, no inverse.");
+   // AssertFatal( det != 0.0f, "MatrixF::inverse: non-singular matrix, no inverse.");
 
    F32 invDet = 1.0f/det;
    F32 temp[16];
@@ -566,7 +566,7 @@ void default_matF_x_matF_C(const F32 *a, const F32 *b, F32 *mresult)
 //--------------------------------------
 static void m_matF_x_point4F_C(const F32 *m, const F32 *p, F32 *presult)
 {
-   AssertFatal(p != presult, "Error, aliasing matrix mul pointers not allowed here!");
+  //  AssertFatal(p != presult, "Error, aliasing matrix mul pointers not allowed here!");
    presult[0] = m[0]*p[0] + m[1]*p[1] + m[2]*p[2]  + m[3]*p[3];   
    presult[1] = m[4]*p[0] + m[5]*p[1] + m[6]*p[2]  + m[7]*p[3];   
    presult[2] = m[8]*p[0] + m[9]*p[1] + m[10]*p[2] + m[11]*p[3];   

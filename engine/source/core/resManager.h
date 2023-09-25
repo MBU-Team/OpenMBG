@@ -271,8 +271,8 @@ class ResDictionary
    S32 entryCount;
    S32 hashTableSize;
    DataChunker memPool;
-   S32 hash(StringTableEntry path, StringTableEntry name);
-   S32 hash(ResourceObject *obj) { return hash(obj->path, obj->name); }
+   U32 hash(StringTableEntry path, StringTableEntry name);
+   U32 hash(ResourceObject *obj) { return hash(obj->path, obj->name); }
    /// @}
 
 public:
