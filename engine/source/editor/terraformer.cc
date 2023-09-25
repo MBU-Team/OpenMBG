@@ -227,6 +227,9 @@ GBitmap* Terraformer::getScaledGreyscale(U32 r)
             S32 indexLo = (S32)mFloor(index);
             S32 indexHi = (S32)mCeil(index);
             index -= indexLo;
+            if (isnan(index)) {
+                indexLo = indexHi = 0;
+            }
             c.interpolate(land[indexLo], land[indexHi], index);
          }
          else if(water != 0)
@@ -235,6 +238,9 @@ GBitmap* Terraformer::getScaledGreyscale(U32 r)
             S32 indexLo = (S32)mFloor(index);
             S32 indexHi = (S32)mCeil(index);
             index -= indexLo;
+            if (isnan(index)) {
+                indexLo = indexHi = 0;
+            }
             c.interpolate(water[indexLo], water[indexHi], index);
          }
 
