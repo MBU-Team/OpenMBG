@@ -673,13 +673,13 @@ bool Interior::read(Stream& stream)
             mHullSurfaceIndices[i] = hullSurfaceIndex;
             // This might need to be done on the U16 rather
             // than the vector of U32
-            if (mHullSurfaceIndices[i] & 0x8000)
-                mHullSurfaceIndices[i] ^= 0x8000;
+            //if (mHullSurfaceIndices[i] & 0x8000)
+            //    mHullSurfaceIndices[i] ^= 0x8000;
         }
         else {
             stream.read(&mHullSurfaceIndices[i]);
-            if (mHullSurfaceIndices[i] & 0x80000000)
-                mHullSurfaceIndices[i] ^= 0x80000000;
+            //if (mHullSurfaceIndices[i] & 0x80000000)
+            //    mHullSurfaceIndices[i] ^= 0x80000000;
         }
     }
 

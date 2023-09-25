@@ -34,7 +34,7 @@ GuiInspector::GuiInspector()
    mTextExtent = 80;
    mEntrySpacing = 2;
    mMaxMenuExtent = 80;
-   mUseFieldGrouping = true;
+   mUseFieldGrouping = false;
 }
 
 void GuiInspector::onRemove()
@@ -166,6 +166,37 @@ void GuiInspector::inspect(SimObject * obj)
 		curYOffset += 6;
    }
 
+   char buf[1024];
+   
+   dSprintf(buf, 1024, "Class: %s", mTarget->getClassName());
+
+   GuiTextCtrl* classCtrl = new GuiTextCtrl();
+   classCtrl->setField("profile", "GuiTextProfile");
+   classCtrl->setField("text", buf);
+   classCtrl->registerObject();
+   addObject(classCtrl);
+
+   S32 textWidth = classCtrl->mProfile->mFont->getStrWidth(buf);
+
+   classCtrl->mBounds.point = Point2I(mEntrySpacing, curYOffset);
+   classCtrl->mBounds.extent = Point2I(textWidth, mEntryHeight);
+
+   curYOffset += (mEntryHeight + mEntrySpacing);
+
+   dSprintf(buf, 1024, "Id: %d", mTarget->getId());
+
+   GuiTextCtrl* idCtrl = new GuiTextCtrl();
+   idCtrl->setField("profile", "GuiTextProfile");
+   idCtrl->setField("text", buf);
+   idCtrl->registerObject();
+   addObject(idCtrl);
+
+   textWidth = idCtrl->mProfile->mFont->getStrWidth(buf);
+
+   idCtrl->mBounds.point = Point2I(mEntrySpacing, curYOffset);
+   idCtrl->mBounds.extent = Point2I(textWidth, mEntryHeight);
+
+   curYOffset += (mEntryHeight + mEntrySpacing);
 
    // add in the static fields
    AbstractClassRep::FieldList fieldList = mTarget->getFieldList();
@@ -484,13 +515,24 @@ void GuiInspector::inspect(SimObject * obj)
 		curYOffset += (mEntryHeight + mEntrySpacing);
 	}
 
+	GuiTextCtrl* dfCtrl = new GuiTextCtrl();
+	dfCtrl->setField("profile", "GuiTextProfile");
+	dfCtrl->setField("text", " Dynamic Fields");
+	dfCtrl->registerObject();
+	addObject(dfCtrl);
+
+	textWidth = dfCtrl->mProfile->mFont->getStrWidth(" Dynamic Fields");
+
+	dfCtrl->mBounds.point = Point2I(mEntrySpacing, curYOffset);
+	dfCtrl->mBounds.extent = Point2I(textWidth, mEntryHeight);
+
 	// button
 	GuiButtonCtrl * button = new GuiButtonCtrl();
 	button->setField("profile", "GuiButtonProfile");
 	button->setField("text", "Add...");
 
 	// MM: Calculate right-alignment.
-	S32 textWidth = button->mProfile->mFont->getStrWidth("Add...") + mEntrySpacing*6;
+	textWidth = button->mProfile->mFont->getStrWidth("Add...") + mEntrySpacing*6;
 	xStartPoint = mBounds.point.x + mBounds.extent.x - textWidth - mEntrySpacing*3;
 
 	// MM: Set new position.
