@@ -196,9 +196,47 @@ bool ZipSubRStream::setPosition(const U32 in_newPosition)
    }
    else
    {
-      AssertFatal(false, "Not implemented!");
-      // Erk.  How do we do this.
-      return false;
+       if (in_newPosition > m_uncompressedSize)
+           return false;
+
+       U32 newPosition = in_newPosition;
+       if (newPosition < m_currentPosition)
+       {
+           Stream* pStream = getStream();
+           U32 resetPosition = m_originalSlavePosition;
+           U32 uncompressedSize = m_uncompressedSize;
+           detachStream();
+           pStream->setPosition(resetPosition);
+           attachStream(pStream);
+           setUncompressedSize(uncompressedSize);
+       }
+       else
+       {
+           newPosition -= m_currentPosition;
+       }
+
+       bool bRet = true;
+       char* buffer = new char[2048];
+       while (newPosition >= 2048)
+       {
+           newPosition -= 2048;
+           if (!_read(2048, buffer))
+           {
+               bRet = false;
+               break;
+           }
+       };
+       if (bRet && newPosition > 0)
+       {
+           if (!_read(newPosition, buffer))
+           {
+               bRet = false;
+           };
+       };
+
+       delete[] buffer;
+
+       return bRet;
    }
 }
 
