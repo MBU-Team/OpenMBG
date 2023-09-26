@@ -110,7 +110,13 @@ bool OpenALDLLInit()
 {
    OpenALDLLShutdown();
 
+   
+#ifdef TORQUE_CPU_X64
+   winState.hinstOpenAL = LoadLibraryA("OpenAl64.dll");
+#endif
+#ifdef TORQUE_CPU_X86
    winState.hinstOpenAL = LoadLibraryA( "OpenAl32.dll" );
+#endif
    if(winState.hinstOpenAL != NULL)
    {
       // if the DLL loaded bind the OpenAL function pointers

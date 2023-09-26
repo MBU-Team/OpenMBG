@@ -158,8 +158,10 @@ ALuint AudioBuffer::getALBuffer()
    // clear the error state
    alGetError();
 
-   if (alIsBuffer(malBuffer))
-      return malBuffer;
+   // Intangir> fix for newest openAL from creative (it returns true, yea right 0 is not a valid buffer)
+   // it MIGHT not work at all for all i know.
+   if (malBuffer && alIsBuffer(malBuffer))
+       return malBuffer;
 
    alGenBuffers(1, &malBuffer);
    if(alGetError() != AL_NO_ERROR)
