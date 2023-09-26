@@ -12,9 +12,7 @@
 DataChunker::DataChunker(S32 size)
 {
    chunkSize          = size;
-   curBlock           = new DataBlock(size);
-   curBlock->next     = NULL;
-   curBlock->curIndex = 0;
+   curBlock           = NULL;
 }
 
 DataChunker::~DataChunker()
@@ -24,36 +22,63 @@ DataChunker::~DataChunker()
 
 void *DataChunker::alloc(S32 size)
 {
-   AssertFatal(size <= chunkSize, "Data chunk too large.");
-   if(!curBlock || size + curBlock->curIndex > chunkSize)
-   {
-      DataBlock *temp = new DataBlock(chunkSize);
-      temp->next = curBlock;
-      temp->curIndex = 0;
-      curBlock = temp;
-   }
-   void *ret = curBlock->data + curBlock->curIndex;
-   curBlock->curIndex += (size + 3) & ~3; // dword align
-   return ret;
+    if (size > chunkSize)
+    {
+        DataBlock* temp = (DataBlock*)dMalloc(DataChunker::PaddDBSize + size);
+        AssertFatal(temp, "Malloc failed");
+        constructInPlace(temp);
+        if (curBlock)
+        {
+            temp->next = curBlock->next;
+            curBlock->next = temp;
+        }
+        else
+        {
+            curBlock = temp;
+            temp->curIndex = chunkSize;
+        }
+        return temp->getData();
+    }
+
+    if (!curBlock || size + curBlock->curIndex > chunkSize)
+    {
+        const U32 paddDBSize = (sizeof(DataBlock) + 3) & ~3;
+        DataBlock* temp = (DataBlock*)dMalloc(paddDBSize + chunkSize);
+        AssertFatal(temp, "Malloc failed");
+        constructInPlace(temp);
+        temp->next = curBlock;
+        curBlock = temp;
+    }
+
+    void* ret = curBlock->getData() + curBlock->curIndex;
+    curBlock->curIndex += (size + 3) & ~3; // dword align
+    return ret;
 }
 
-DataChunker::DataBlock::DataBlock(S32 size)
+DataChunker::DataBlock::DataBlock()
 {
-   data = new U8[size];
+    curIndex = 0;
+    next = NULL;
 }
 
 DataChunker::DataBlock::~DataBlock()
 {
-   delete[] data;
+    
 }
 
 void DataChunker::freeBlocks()
 {
-   while(curBlock)
-   {
-      DataBlock *temp = curBlock->next;
-      delete curBlock;
-      curBlock = temp;
-   }
+    while (curBlock && curBlock->next)
+    {
+        DataBlock* temp = curBlock->next;
+        dFree(curBlock);
+        curBlock = temp;
+    }
+
+    if (curBlock)
+    {
+        curBlock->curIndex = 0;
+        curBlock->next = NULL;
+    }
 }
 

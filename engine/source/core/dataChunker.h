@@ -26,9 +26,6 @@
 class DataChunker
 {
   public:
-   enum {
-      ChunkSize = 16376 ///< Default size for chunks.
-   };
 
   private:
    /// Block of allocated memory.
@@ -37,15 +34,20 @@ class DataChunker
    struct DataBlock
    {
       DataBlock *next;
-      U8 *data;
       S32 curIndex;
-      DataBlock(S32 size);
+      DataBlock();
       ~DataBlock();
+      inline U8* getData();
    };
    DataBlock *curBlock;
    S32 chunkSize;
 
   public:
+
+   enum {
+       PaddDBSize = (sizeof(DataBlock) + 3) & ~3, ///< Padded size of DataBlock
+       ChunkSize = 16384 - PaddDBSize ///< Default size of each DataBlock page in the DataChunker
+   };
 
    /// Return a pointer to a chunk of memory from a pre-allocated block.
    ///
@@ -69,6 +71,11 @@ class DataChunker
    DataChunker(S32 size=ChunkSize);
    ~DataChunker();
 };
+
+inline U8* DataChunker::DataBlock::getData()
+{
+    return (U8*)this + DataChunker::PaddDBSize;
+}
 
 
 //----------------------------------------------------------------------------
@@ -109,11 +116,21 @@ public:
       numAllocated--;
       *(reinterpret_cast<T**>(elem)) = freeListHead;
       freeListHead = elem;
-      //if(!numAllocated)
-      //{
-      //   freeBlocks();
-      //   freeListHead = NULL;
-      //}
+      if(!numAllocated)
+      {
+         freeBlocks();
+         freeListHead = NULL;
+      }
+   }
+
+   // Allow people to free all their memory if they want.
+   void freeBlocks()
+   {
+       DataChunker::freeBlocks();
+
+       // We have to terminate the freelist as well or else we'll run
+       // into crazy unused memory.
+       freeListHead = NULL;
    }
 };
 
