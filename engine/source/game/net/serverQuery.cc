@@ -424,7 +424,7 @@ void queryMasterGameTypes()
 
 //-----------------------------------------------------------------------------
 
-void queryMasterServer(U8 flags, const char* gameType, const char* missionType, 
+void queryMasterServer(U8 flags, U16 lanPort, const char* gameType, const char* missionType, 
       U8 minPlayers, U8 maxPlayers, U8 maxBots, U32 regionMask, U32 maxPing, 
       U16 minCPU, U8 filterFlags, U8 buddyCount, U32* buddyList )
 {
@@ -463,6 +463,7 @@ void queryMasterServer(U8 flags, const char* gameType, const char* missionType,
       sActiveFilter.buddyCount   = buddyCount;
       dFree( sActiveFilter.buddyList );
       sActiveFilter.buddyList = NULL;
+      queryLanServers(lanPort, flags, gameType, missionType, minPlayers, maxPlayers, maxBots, regionMask, maxPing, minCPU, filterFlags);
    }
    else
    {
@@ -489,28 +490,29 @@ void queryMasterServer(U8 flags, const char* gameType, const char* missionType,
       processMasterServerQuery( gPingSession );
 }
 
-ConsoleFunction( queryMasterServer, void, 11, 11, "queryMasterServer(...);" )
+ConsoleFunction( queryMasterServer, void, 12, 12, "queryMasterServer(...);" )
 {
    argc;
 
    U8 flags = dAtoi(argv[1]); 
+   U16 lanPort = dAtoi(argv[2]);
 
    // It's not a good idea to hold onto args, recursive calls to
    // console exec will trash them.
-   char* gameType = dStrdup(argv[2]);
-   char* missionType = dStrdup(argv[3]);
+   char* gameType = dStrdup(argv[3]);
+   char* missionType = dStrdup(argv[4]);
 
-   U8 minPlayers = dAtoi(argv[4]);
-   U8 maxPlayers = dAtoi(argv[5]);
-   U8 maxBots = dAtoi(argv[6]);
-   U32 regionMask = dAtoi(argv[7]);
-   U32 maxPing = dAtoi(argv[8]);
-   U16 minCPU = dAtoi(argv[9]);
-   U8 filterFlags = dAtoi(argv[10]);
+   U8 minPlayers = dAtoi(argv[5]);
+   U8 maxPlayers = dAtoi(argv[6]);
+   U8 maxBots = dAtoi(argv[7]);
+   U32 regionMask = dAtoi(argv[8]);
+   U32 maxPing = dAtoi(argv[9]);
+   U16 minCPU = dAtoi(argv[10]);
+   U8 filterFlags = dAtoi(argv[11]);
    U8 buddyCount = 0;
    U32 buddyList = 0;
 
-   queryMasterServer(flags,gameType,missionType,minPlayers,maxPlayers,
+   queryMasterServer(flags,lanPort, gameType,missionType,minPlayers,maxPlayers,
       maxBots,regionMask,maxPing,minCPU,filterFlags,0,&buddyList);
 
    dFree(gameType);
