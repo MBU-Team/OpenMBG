@@ -2231,24 +2231,24 @@ bool MarbleData::preload(bool server, char errorBuffer[256])
 
     if (!server)
     {
-        if (!rollHardSound && rollHardSound != 0) {
-            AudioProfile* o = dynamic_cast<AudioProfile*>(Sim::findObject(rollHardSound->getId()));
+        if (rollHardSound) {
+            AudioProfile* o = dynamic_cast<AudioProfile*>(Sim::findObject((U32)rollHardSound));
 			if (o != NULL)
 				rollHardSound = o;
 			else
 				Con::errorf(ConsoleLogEntry::General, "MarbleData::preload: Invalid packet, datablock \"rollHardSound\" of class \"AudioProfile\" has bad datablockId field");
         }
 
-        if (!slipSound && slipSound != 0) {
-            AudioProfile* o = dynamic_cast<AudioProfile*>(Sim::findObject(slipSound->getId()));
+        if (slipSound) {
+            AudioProfile* o = dynamic_cast<AudioProfile*>(Sim::findObject((U32)slipSound));
             if (o != NULL)
                 slipSound = o;
             else
                 Con::errorf(ConsoleLogEntry::General, "MarbleData::preload: Invalid packet, datablock \"slipSound\" of class \"AudioProfile\" has bad datablockId field");
         }
 
-        if (!jumpSound && jumpSound != 0) {
-            AudioProfile* o = dynamic_cast<AudioProfile*>(Sim::findObject(jumpSound->getId()));
+        if (jumpSound) {
+            AudioProfile* o = dynamic_cast<AudioProfile*>(Sim::findObject((U32)jumpSound));
             if (o != NULL)
                 jumpSound = o;
             else
@@ -2257,8 +2257,8 @@ bool MarbleData::preload(bool server, char errorBuffer[256])
 
         for (int i = 0; i < 4; i++)
         {
-            if (!bounceSounds[i] && bounceSounds[i] != 0) {
-                AudioProfile* o = dynamic_cast<AudioProfile*>(Sim::findObject(bounceSounds[i]->getId()));
+            if (bounceSounds[i]) {
+                AudioProfile* o = dynamic_cast<AudioProfile*>(Sim::findObject((U32)bounceSounds[i]));
                 if (o != NULL)
                     bounceSounds[i]= o;
                 else
@@ -2302,17 +2302,17 @@ void MarbleData::packData(BitStream* stream)
     }
 
     if (stream->writeFlag(rollHardSound != NULL))
-        stream->writeRangedU32(rollHardSound->getId(), DataBlockObjectIdFirst, DataBlockObjectIdLast);
+        stream->writeRangedU32(!packed ? rollHardSound->getId() : SimObjectId(rollHardSound), DataBlockObjectIdFirst, DataBlockObjectIdLast);
     
     if (stream->writeFlag(slipSound != NULL))
-        stream->writeRangedU32(slipSound->getId(), DataBlockObjectIdFirst, DataBlockObjectIdLast);
+        stream->writeRangedU32(!packed ? slipSound->getId() : SimObjectId(slipSound), DataBlockObjectIdFirst, DataBlockObjectIdLast);
 
     if (stream->writeFlag(jumpSound != NULL))
-        stream->writeRangedU32(jumpSound->getId(), DataBlockObjectIdFirst, DataBlockObjectIdLast);
+        stream->writeRangedU32(!packed ? jumpSound->getId() : SimObjectId(jumpSound), DataBlockObjectIdFirst, DataBlockObjectIdLast);
 
     for (int i = 0; i < 4; i++)
         if (stream->writeFlag(bounceSounds[i] != NULL))
-            stream->writeRangedU32(bounceSounds[i]->getId(), DataBlockObjectIdFirst, DataBlockObjectIdLast);
+            stream->writeRangedU32(!packed ? bounceSounds[i]->getId() : SimObjectId(bounceSounds[i]), DataBlockObjectIdFirst, DataBlockObjectIdLast);
 
     Parent::packData(stream);
 }
@@ -2347,15 +2347,15 @@ void MarbleData::unpackData(BitStream* stream)
 		stream->read(&powerUpTime[i]);
     }
 
+    if (stream->readFlag())
+        rollHardSound = (AudioProfile*)stream->readRangedU32(DataBlockObjectIdFirst, DataBlockObjectIdLast);
 	if (stream->readFlag())
-		Sim::findObject(stream->readRangedU32(DataBlockObjectIdFirst, DataBlockObjectIdLast), rollHardSound);
+		slipSound = (AudioProfile*)stream->readRangedU32(DataBlockObjectIdFirst, DataBlockObjectIdLast);
 	if (stream->readFlag())
-		Sim::findObject(stream->readRangedU32(DataBlockObjectIdFirst, DataBlockObjectIdLast), slipSound);
-	if (stream->readFlag())
-		Sim::findObject(stream->readRangedU32(DataBlockObjectIdFirst, DataBlockObjectIdLast), jumpSound);
+		jumpSound = (AudioProfile*)stream->readRangedU32(DataBlockObjectIdFirst, DataBlockObjectIdLast);
 	for (int i = 0; i < 4; i++)
 		if (stream->readFlag())
-			Sim::findObject(stream->readRangedU32(DataBlockObjectIdFirst, DataBlockObjectIdLast), bounceSounds[i]);
+			bounceSounds[i] = (AudioProfile*)stream->readRangedU32(DataBlockObjectIdFirst, DataBlockObjectIdLast);
     
 
     Parent::unpackData(stream);
