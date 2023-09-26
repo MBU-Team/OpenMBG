@@ -534,6 +534,7 @@ static F32 fpsFrames;
 static F32 fpsNext;
 static bool fpsInit = false;
 const F32 UPDATE_INTERVAL = 0.25f;
+U32 gTickInterval = 1;
 
 //--------------------------------------
 
@@ -895,4 +896,9 @@ ConsoleFunction(recordDemo, void, 3, 3, "recordDemo(path)")
 ConsoleFunction(stopDemo, void, 1, 1, "stopDemo()")
 {
     GameObject.stopDemo();
+}
+
+ConsoleFunction(setTickInterval, void, 2, 2, "setTickInterval(interval)")
+{
+    gTickInterval = fmax(dAtoi(argv[1]), 1);
 }

@@ -1220,13 +1220,15 @@ S32 PASCAL WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR lpszCmdLine, S32)
    return retVal;
 }
 
+extern U32 gTickInterval;
+
 //--------------------------------------
 void TimeManager::process()
 {
    TimeEvent event;
    event.elapsedTime = gTimer.getElapsedMS();
 
-   //if(event.elapsedTime > 1)
+   if(event.elapsedTime > gTickInterval)
    {
       gTimer.advance();
       Game->postEvent(event);
