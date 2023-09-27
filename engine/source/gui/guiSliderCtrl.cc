@@ -146,7 +146,7 @@ void GuiSliderCtrl::updateThumb( F32 value, bool onWake )
    if (mValue > mRange.y)  mValue = mRange.y;
 
    Point2I ext = mBounds.extent;
-	ext.x -= ( mShiftExtent + mThumbSize.x ) / 2;
+   ext.x -= ( mShiftExtent + mThumbSize.x );
    // update the bounding thumb rect
    if (mBounds.extent.x >= mBounds.extent.y)
    {  // HORZ thumb
@@ -155,7 +155,7 @@ void GuiSliderCtrl::updateThumb( F32 value, bool onWake )
       if(mDisplayValue)
          my = mThumbSize.y/2;
 
-      mThumb.point.x  = mx - (mThumbSize.x/2);
+      mThumb.point.x  = mx; //  -(mThumbSize.x / 2);
       mThumb.point.y  = my - (mThumbSize.y/2);
       mThumb.extent   = mThumbSize;
    }
