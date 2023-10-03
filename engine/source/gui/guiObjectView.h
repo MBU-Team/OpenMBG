@@ -50,11 +50,12 @@ class GuiObjectView : public GuiTSCtrl
 		Point3F  mCameraPos;
 		MatrixF  mCameraMatrix;
 		EulerF   mCameraRot;
-		EulerF   mCameraRotSpeed;
 		EulerF   mCameraOffset;
 		Point3F  mOrbitPos;
 		F32      mMinOrbitDist;
 		F32      mOrbitDist;
+		F32      mCamRotX;
+		F32      mCamZRotSpeed;
 
 		Point2I  mLastMousePoint;
 		S32 lastRenderTime;
@@ -88,7 +89,7 @@ class GuiObjectView : public GuiTSCtrl
 		void setObjectModel(const char* modelName, const char* skinName);
 		inline void setCameraDistance(F32 d) { mOrbitDist = d; };
 		inline void setCameraPitch(F32 p) { mCameraRot.x = p; };
-		inline void setCameraRotSpeed(F32 s) { mCameraRotSpeed.z = s; };
+		inline void setCameraRotSpeed(F32 s) { mCamZRotSpeed = s; };
 		inline void setEmpty() {
 			if (mModel != NULL) {
 				delete mModel;

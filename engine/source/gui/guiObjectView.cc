@@ -39,7 +39,8 @@ GuiObjectView::GuiObjectView() : GuiTSCtrl()
 
 	mCameraMatrix.identity();
 	mCameraRot.set(0.0f, 0.0f, 0.0f);//3.9f);
-	mCameraRotSpeed.set(0.0f, 0.0f, 0.001f);
+	mCamRotX = 0;
+	mCamZRotSpeed = 0.001;
 	mCameraPos.set(0.0f, 1.75f, 1.25f);
 	mCameraMatrix.setColumn(3, mCameraPos);
 	mOrbitPos.set(0.0f, 0.0f, 0.0f);
@@ -71,8 +72,8 @@ void GuiObjectView::initPersistFields()
 	addGroup("Object View");		// MM: Added Group Header.
 	addField("model", TypeFilename, Offset(mModelName, GuiObjectView));
 	addField("skin", TypeString, Offset(mSkinName, GuiObjectView));
-	addField("cameraRotX", TypeF32, Offset(mCameraRot.x, GuiObjectView));
-	addField("cameraZRotSpeed", TypeF32, Offset(mCameraRotSpeed.z, GuiObjectView));
+	addField("cameraRotX", TypeF32, Offset(mCamRotX, GuiObjectView));
+	addField("cameraZRotSpeed", TypeF32, Offset(mCamZRotSpeed, GuiObjectView));
 	addField("orbitDistance", TypeF32, Offset(mOrbitDist, GuiObjectView));
 	endGroup("Object View");		// MM: Added Group Footer.
 }
@@ -167,8 +168,8 @@ bool GuiObjectView::processCameraQuery( CameraQuery* query )
 	mCameraPos = mOrbitPos - vec;
 
 	query->farPlane = 2100.0f;
-	query->nearPlane = query->farPlane / 5000.0f;
-	query->fov = 45.0f;
+	query->nearPlane = 0.1;
+	query->fov = 0.89757144;
 	mCameraMatrix.setColumn(3, mCameraPos);
 	query->cameraMatrix = mCameraMatrix;
 	return( true );
@@ -178,24 +179,25 @@ bool GuiObjectView::processCameraQuery( CameraQuery* query )
 //------------------------------------------------------------------------------
 void GuiObjectView::renderWorld( const RectI &updateRect )
 {
-	S32 time = Platform::getVirtualMilliseconds();
-	S32 dt = time - lastRenderTime;
-	lastRenderTime = time;
-
-	glClear( GL_DEPTH_BUFFER_BIT );
-	glMatrixMode( GL_MODELVIEW );
-
-	glEnable( GL_DEPTH_TEST );
-	glDepthFunc( GL_LEQUAL );
-
 	if (mModel) {
-		mCameraRot += mCameraRotSpeed * dt;
-		mModel->render();
-	}
+		S32 time = Platform::getVirtualMilliseconds();
+		S32 dt = time - lastRenderTime;
+		lastRenderTime = time;
+		mCameraRot.x = mCamRotX;
+		mCameraRot.z += mCamZRotSpeed * dt;
 
-	glDisable( GL_DEPTH_TEST );
-	dglSetClipRect( updateRect );
-	dglSetCanonicalState();
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glMatrixMode(GL_MODELVIEW);
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+		
+		mModel->render();
+		
+		glDisable(GL_DEPTH_TEST);
+		dglSetClipRect(updateRect);
+		dglSetCanonicalState();
+	}
 }
 
 void GuiObjectView::setObjectModel(const char* modelName, const char* skinName)
