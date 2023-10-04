@@ -112,6 +112,30 @@ ConsoleFunction( setRes, bool, 3, 4, "( int width, int height, int bpp=NULL )")
    return( Video::setResolution( width, height, bpp ) );
 }
 
+ConsoleFunction(getResolution, const char*, 1, 1, "Get the width, height, and bitdepth of the screen.")
+{
+	static char resBuf[16];
+	Resolution res = Video::getResolution();
+	dSprintf(resBuf, sizeof(resBuf), "%d %d %d", res.w, res.h, res.bpp);
+	return(resBuf);
+}
+
+//--------------------------------------------------------------------------
+ConsoleFunction(setResolution, bool, 3, 4, "( int width, int height, int bpp=NULL )")
+{
+	U32 width = dAtoi(argv[1]);
+	U32 height = dAtoi(argv[2]);
+	U32 bpp = 0;
+	if (argc == 4)
+	{
+		bpp = dAtoi(argv[3]);
+		if (bpp != 16 && bpp != 32)
+			bpp = 0;
+	}
+
+	return(Video::setResolution(width, height, bpp));
+}
+
 //------------------------------------------------------------------------------
 ConsoleFunction( getDisplayDeviceList, const char*, 1, 1, "")
 {

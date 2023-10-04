@@ -1937,10 +1937,8 @@ void ShapeBase::updateAudioState(Sound& st)
    }
    if (st.play && st.profile) {
       if (isGhost()) {
-         if (Sim::findObject(SimObjectId(st.profile), st.profile))
-            st.sound = alxPlay(st.profile, &getTransform());
-         else
-            st.play = false;
+        st.sound = alxPlay(st.profile, &getTransform());
+        st.play = false;
       }
       else {
          // Non-looping sounds timeout on the server
@@ -3111,8 +3109,11 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
          if (stream->readFlag()) {
             Sound& st = mSoundThread[i];
             if ((st.play = stream->readFlag()) == true) {
-               st.profile = (AudioProfile*) stream->readRangedU32(DataBlockObjectIdFirst,
-                                                                  DataBlockObjectIdLast);
+               SimObjectId audioProfId = stream->readRangedU32(DataBlockObjectIdFirst,
+                    DataBlockObjectIdLast);
+               SimObject* ap = Sim::findObject(audioProfId);
+               if (ap)
+                   st.profile = dynamic_cast<AudioProfile*>(ap);
             }
             if (isProperlyAdded())
                updateAudioState(st);
