@@ -166,6 +166,7 @@ void Marble::getCameraTransform(F32* dt, MatrixF* mat)
         Point3D pos = camStart;
         F64 dt = 1.0;
         Point3D diff = camStart - curPos;
+        U32 collisionMask = InteriorObjectType | TerrainObjectType | WaterObjectType | StaticShapeObjectType | PlayerObjectType | VehicleObjectType | UNUSED_AVAILABLE2;
         if (testMove(diff, curPos, dt, 0.09, 90396, true))
             curPos = mRenderObjToWorld.getPosition();
         pos = curPos;

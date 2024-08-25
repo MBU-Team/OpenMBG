@@ -281,6 +281,7 @@ class TerrainBlock : public SceneObject
    S32 mHeightMin;
    S32 mHeightMax;
   public:
+   virtual MaterialProperty* getMaterialProperty(U32);
    void buildConvex(const Box3F& box,Convex* convex);
    bool buildPolyList(AbstractPolyList* polyList, const Box3F &box, const SphereF &sphere);
    BSPNode *buildCollisionBSP(BSPTree *tree, const Box3F &box, const SphereF &sphere);

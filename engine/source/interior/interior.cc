@@ -2169,7 +2169,7 @@ void Interior::computeNormals(ItrFastDetail* fastDetail)
             Surface& othersurf = mSurfaces[j];
             ItrFastDetail::Section& othersection = fastDetail->mSections[j];
             PlaneF otherplane = mPlanes[othersurf.planeIndex & ~0x8000];
-            if (surf.planeIndex & 0x8000) {
+            if (othersurf.planeIndex & 0x8000) {
                 otherplane.x *= -1;
                 otherplane.y *= -1;
                 otherplane.z *= -1;

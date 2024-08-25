@@ -475,6 +475,11 @@ static void clrbuf(U32* p, U32 s)
 
 //----------------------------------------------------------------------------
 
+MaterialProperty* TerrainBlock::getMaterialProperty(U32)
+{
+    return nullptr;
+}
+
 bool TerrainBlock::buildPolyList(AbstractPolyList* polyList, const Box3F &box, const SphereF&)
 {
    if (box.max.z < -TerrainThickness || box.min.z > fixedToFloat(gridMap[BlockShift]->maxHeight))
