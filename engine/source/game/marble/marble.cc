@@ -953,21 +953,21 @@ void Marble::writePacketData(GameConnection* conn, BitStream* stream)
 
 bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radius, U32 collisionMask, bool testPIs)
 {
-    F64 velLen = velocity.len();
-    if (velocity.len() < 0.001)
+    F64 velSq = (velocity.z * velocity.z + velocity.y * velocity.y + velocity.x * velocity.x);
+    F32 velLen = mSqrtD(velSq);
+    if (velLen < 0.001)
         return false;
 
-    Point3F velocityDir = velocity * (1.0 / velLen);
+    Point3D velocityDir = velocity * (1.0 / velLen);
 
-    Point3F deltaPosition = velocity * deltaT;
-    Point3F finalPosition = position + deltaPosition;
-    Point3F fVel = velocity;
+    Point3D deltaPosition = velocity * deltaT;
+    Point3D finalPosition = position + deltaPosition;
 
     // If there is a collision mask
     if (collisionMask != 0)
     {
         // Create a Bounding Box and expand it to include the final position
-        Box3F box(mObjBox.min + position - Point3D(0.5f, 0.5f, 0.5f), mObjBox.max + position + Point3D(0.5f, 0.5f, 0.5f));
+        Box3F box(mObjBox.min + position - Point3F(0.5f, 0.5f, 0.5f), mObjBox.max + position + Point3F(0.5f, 0.5f, 0.5f));
 
         if (deltaPosition.x >= 0.0)
             box.max.x += deltaPosition.x;
@@ -987,7 +987,11 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
         SimpleQueryList queryList;
         mContainer->findObjects(box, collisionMask, SimpleQueryList::insertionCallback, &queryList);
 
-        SphereF sphere(mPosition, mRadius);
+        F32 sphereRadius = ((box.max - box.min) * 0.5).len();
+        if (sphereRadius < 0.0) {
+            sphereRadius = 0.0;
+        }
+        SphereF sphere(mPosition, sphereRadius);
 
         mPolyList.clear();
         for (int i = 0; i < queryList.mList.size(); i++) {
@@ -998,7 +1002,7 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
 
     F64 finalT = deltaT;
     F64 marbleCollisionTime = finalT;
-    Point3F marbleCollisionNormal(0.0f, 0.0f, 1.0f);
+    Point3D marbleCollisionNormal(0.0f, 0.0f, 1.0f);
 
     Point3D lastContactPos;
 
@@ -1013,34 +1017,34 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
         {
             poly = &mPolyList.mPolyList[index];
 
-            PlaneF polyPlane = poly->plane;
+            PlaneD polyPlane = poly->plane;
 
             // If we're going the wrong direction or not going to touch the plane, ignore...
-            if (mDot(polyPlane, velocityDir) > -0.001 || mDot(polyPlane, finalPosition) + polyPlane.d > radius)
+            if (polyPlane.x * velocityDir.x + polyPlane.z * velocityDir.z + polyPlane.y * velocityDir.y > -0.001 || (polyPlane.z * finalPosition.z + polyPlane.y * finalPosition.y + polyPlane.x * finalPosition.x) + polyPlane.d > radius)
                 continue;
 
             // Time until collision with the plane
-            F64 collisionTime = (radius - (mDot(polyPlane, Point3F(position)) + polyPlane.d)) / mDot(polyPlane, fVel);
+            F64 collisionTime = (radius - (polyPlane.x * position.x + polyPlane.z * position.z + polyPlane.y * position.y + polyPlane.d)) / (polyPlane.z * velocity.z + polyPlane.y * velocity.y + polyPlane.x * velocity.x);
 
             // Are we going to touch the plane during this time step?
             if (collisionTime >= 0.0 && finalT >= collisionTime)
             {
                 U32 lastVertIndex = mPolyList.mIndexList[poly->vertexCount - 1 + poly->vertexStart];
-                Point3F lastVert = mPolyList.mVertexList[lastVertIndex];
+                Point3D lastVert = mPolyList.mVertexList[lastVertIndex];
 
-                Point3F collisionPos = velocity * collisionTime + position;
+                Point3D collisionPos = velocity * collisionTime + position;
 
                 U32 i;
                 for (i = 0; i < poly->vertexCount; i++)
                 {
-                    Point3F thisVert = mPolyList.mVertexList[mPolyList.mIndexList[i + poly->vertexStart]];
+                    Point3D thisVert = mPolyList.mVertexList[mPolyList.mIndexList[i + poly->vertexStart]];
                     if (thisVert != lastVert)
                     {
-                        PlaneF edgePlane(thisVert + polyPlane, thisVert, lastVert);
+                        PlaneD edgePlane(thisVert + polyPlane, thisVert, lastVert);
                         lastVert = thisVert;
 
                         // if we are on the far side of the edge
-                        if (mDot(edgePlane, collisionPos) + edgePlane.d < 0.0)
+                        if (edgePlane.y * collisionPos.y + edgePlane.z * collisionPos.z + edgePlane.x * collisionPos.x + edgePlane.d < 0.0)
                             break;
                     }
                 }
@@ -1060,7 +1064,7 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
 
             // We *might* be colliding with an edge
 
-            Point3F lastVert = mPolyList.mVertexList[mPolyList.mIndexList[poly->vertexCount - 1 + poly->vertexStart]];
+            Point3D lastVert = mPolyList.mVertexList[mPolyList.mIndexList[poly->vertexCount - 1 + poly->vertexStart]];
 
             if (poly->vertexCount == 0)
                 continue;
@@ -1078,11 +1082,13 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
                 Point3D posRejection = mCross(vertDiff, posDiff);
 
                 // Build a quadratic equation to solve for the collision time
-                F64 a = velRejection.lenSquared();
-                F64 halfB = mDot(posRejection, velRejection);
+                F64 a = velRejection.x * velRejection.x + velRejection.z * velRejection.z + velRejection.y * velRejection.y;
+                F64 halfB = posRejection.x * velRejection.x + posRejection.z * velRejection.z + posRejection.y * velRejection.y;
                 F64 b = halfB + halfB;
 
-                F64 discriminant = b * b - (posRejection.lenSquared() - vertDiff.lenSquared() * radSq) * (a * 4.0);
+                F64 discriminant = b * b -
+                    ((posRejection.x * posRejection.x + posRejection.z * posRejection.z + posRejection.y * posRejection.y)
+                        - (vertDiff.x * vertDiff.x + vertDiff.z * vertDiff.z + vertDiff.y * vertDiff.y) * radius * radius) * a * 4.0;
 
                 // If it's not quadratic or has no solution, ignore this edge.
                 if (a == 0.0 || discriminant < 0.0)
@@ -1092,10 +1098,11 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
                 }
 
                 F64 oneOverTwoA = 0.5 / a;
-                F64 discriminantSqrt = mSqrtD(discriminant);
+                F32 discriminantSqrtF = mSqrtD((F32)discriminant);
+                F64 discriminantSqrt = discriminantSqrtF;
 
                 // Solve using the quadratic formula
-                F64 edgeCollisionTime = (discriminantSqrt - b) * oneOverTwoA;
+                F64 edgeCollisionTime = (discriminantSqrtF - b) * oneOverTwoA;
                 F64 edgeCollisionTime2 = (-b - discriminantSqrt) * oneOverTwoA;
 
                 // Make sure the 2 times are in ascending order
@@ -1116,11 +1123,11 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
                 // Check if the collision hasn't already happened
                 if (edgeCollisionTime >= 0.0)
                 {
-                    F64 edgeLen = vertDiff.len();
+                    F64 edgeLen = mSqrtD(vertDiff.x * vertDiff.x + vertDiff.z * vertDiff.z + vertDiff.y * vertDiff.y);
 
                     Point3D relativeCollisionPos = velocity * edgeCollisionTime + position - thisVert;
 
-                    F64 distanceAlongEdge = mDot(relativeCollisionPos, vertDiff) / edgeLen;
+                    F64 distanceAlongEdge = (relativeCollisionPos.z * vertDiff.z + relativeCollisionPos.y * vertDiff.y + relativeCollisionPos.x * vertDiff.x) / edgeLen;
 
                     // If the collision happens outside the boundaries of the edge, ignore this edge.
                     if (-radius > distanceAlongEdge || edgeLen + radius < distanceAlongEdge)
@@ -1145,11 +1152,11 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
 
                 // This is what happens when we collide with a corner
 
-                F64 speedSq = velocity.lenSquared();
+                F64 speedSq = velSq;
 
                 // Build a quadratic equation to solve for the collision time
                 Point3D posVertDiff = position - thisVert;
-                F64 halfCornerB = mDot(posVertDiff, velocity);
+                F64 halfCornerB = posVertDiff.z * velocity.z + posVertDiff.y * velocity.y + posVertDiff.x * velocity.x; // -mDot(posVertDiff, velocity);
                 F64 cornerB = halfCornerB + halfCornerB;
 
                 F64 fourA = speedSq * 4.0;
@@ -1160,10 +1167,12 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
                 if (speedSq != 0.0 && cornerDiscriminant >= 0.0)
                 {
                     F64 oneOver2A = 0.5 / speedSq;
-                    F64 cornerDiscriminantSqrt = mSqrtD(cornerDiscriminant);
+
+                    F32 cornerDiscriminantSqrtF = mSqrtD((F32)cornerDiscriminant);
+                    F64 cornerDiscriminantSqrt = cornerDiscriminantSqrtF;
 
                     // Solve using the quadratic formula
-                    F64 cornerCollisionTime = (cornerDiscriminantSqrt - cornerB) * oneOver2A;
+                    F64 cornerCollisionTime = (cornerDiscriminantSqrtF - cornerB) * oneOver2A;
                     F64 cornerCollisionTime2 = (-cornerB - cornerDiscriminantSqrt) * oneOver2A;
 
                     // Make sure the 2 times are in ascending order
@@ -1196,9 +1205,9 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
                 // We still need to check the other corner ...
                 // Build one last quadratic equation to solve for the collision time
                 Point3D lastVertDiff = position - lastVert;
-                F64 lastCornerHalfB = mDot(lastVertDiff, velocity);
+                F64 lastCornerHalfB = lastVertDiff.z * velocity.z + lastVertDiff.y * velocity.y + lastVertDiff.x * velocity.x; // mDot(lastVertDiff, velocity);
                 F64 lastCornerB = lastCornerHalfB + lastCornerHalfB;
-                F64 lastCornerDiscriminant = lastCornerB * lastCornerB - (lastVertDiff.lenSquared() - radSq) * fourA;
+                F64 lastCornerDiscriminant = lastCornerB * lastCornerB - (lastVertDiff.lenSquared() - radSq) * speedSq * 4.0;
 
                 // If it's not quadratic or has no solution, then skip this corner
                 if (speedSq == 0.0 || lastCornerDiscriminant < 0.0)
@@ -1208,10 +1217,11 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
                 }
 
                 F64 lastCornerOneOver2A = 0.5 / speedSq;
-                F64 lastCornerDiscriminantSqrt = mSqrtD(lastCornerDiscriminant);
+                F32 lastCornerDiscriminantSqrtF = mSqrtD((F32)lastCornerDiscriminant);
+                F64 lastCornerDiscriminantSqrt = lastCornerDiscriminantSqrtF;
 
                 // Solve using the quadratic formula
-                F64 lastCornerCollisionTime = (lastCornerDiscriminantSqrt - lastCornerB) * lastCornerOneOver2A;
+                F64 lastCornerCollisionTime = (lastCornerDiscriminantSqrtF - lastCornerB) * lastCornerOneOver2A;
                 F64 lastCornerCollisionTime2 = (-lastCornerB - lastCornerDiscriminantSqrt) * lastCornerOneOver2A;
 
                 // Make sure the 2 times are in ascending order
@@ -1301,6 +1311,7 @@ bool Marble::testMove(Point3D velocity, Point3D& position, F64& deltaT, F64 radi
     return contacted;
 }
 
+
 void Marble::findContacts(U32 contactMask)
 {
     mContacts.clear();
@@ -1315,6 +1326,9 @@ void Marble::findContacts(U32 contactMask)
         mContainer->findObjects(box, contactMask, SimpleQueryList::insertionCallback, &queryList);
 
         SphereF sphere(mPosition, mRadius);
+        if (sphere.radius < 0.0) {
+            sphere.radius = 0;
+        }
 
         mPolyList.clear();
         for (int i = 0; i < queryList.mList.size(); i++) {
@@ -1325,26 +1339,28 @@ void Marble::findContacts(U32 contactMask)
     for (int i = 0; i < mPolyList.mPolyList.size(); i++)
     {
         ConcretePolyList::Poly* poly = &mPolyList.mPolyList[i];
-        PlaneF plane(poly->plane);
-        F64 distance = plane.distToPlane(mPosition);
-        if (mFabsD(distance) <= (F64)mRadius + 0.0001) {
+        PlaneD plane(poly->plane);
+        F64 distance = plane.y * mPosition.y + plane.z * mPosition.z + plane.x * mPosition.x + plane.d;
+        if (mFabs((F32)distance) <= (F64)mRadius + 0.0001f) {
             Point3D lastVertex(mPolyList.mVertexList[mPolyList.mIndexList[poly->vertexStart + poly->vertexCount - 1]]);
 
             Point3D contactVert = plane.project(mPosition);
             Point3D finalContact = contactVert;
-            F64 separation = mSqrtD(mRadius * mRadius - distance * distance);
+            F64 separation = (F32)mSqrtD(mRadius * mRadius - distance * distance);
 
             for (int j = 0; j < poly->vertexCount; j++) {
                 Point3D vertex = mPolyList.mVertexList[mPolyList.mIndexList[poly->vertexStart + j]];
                 if (vertex != lastVertex) {
-                    PlaneF vertPlane(vertex + plane, vertex, lastVertex);
-                    F64 vertDistance = vertPlane.distToPlane(contactVert);
+                    PlaneD vertPlane(vertex + plane, vertex, lastVertex);
+                    F64 vertDistance = vertPlane.x * contactVert.x + vertPlane.z * contactVert.z + vertPlane.y * contactVert.y + vertPlane.d; //     .distToPlane(contactVert);
                     if (vertDistance < 0.0) {
                         if (vertDistance < -(separation + 0.0001))
                             goto superbreak;
 
-                        if (PlaneF(vertPlane + vertex, vertex, vertex + plane).distToPlane(contactVert) >= 0.0) {
-                            if (PlaneF(lastVertex - vertPlane, lastVertex, lastVertex + plane).distToPlane(contactVert) >= 0.0) {
+                        PlaneD p1 = PlaneD(vertPlane + vertex, vertex, vertex + plane);
+                        if (p1.x * contactVert.x + p1.z * contactVert.z + p1.y * contactVert.y + p1.d >= 0.0) {
+                            PlaneD p2 = PlaneD(lastVertex - vertPlane, lastVertex, lastVertex + plane); //  .distToPlane(contactVert)
+                            if (p2.x * contactVert.x + p2.z * contactVert.z + p2.y * contactVert.y + p2.d >= 0.0) {
                                 finalContact = vertPlane.project(contactVert);
                                 break;
                             }
@@ -1477,7 +1493,7 @@ void Marble::computeFirstPlatformIntersect(F64& dt)
 
             if (!isContacting)
             {
-                Point3F vel = mVelocity - it->getVelocity();
+                Point3D vel = mVelocity - it->getVelocity();
                 Point3F boxCenter;
                 itBox.getCenter(&boxCenter);
 
@@ -1495,12 +1511,12 @@ void Marble::computeFirstPlatformIntersect(F64& dt)
 
 void Marble::applyContactForces(const Move* move, bool isCentered, Point3D& aControl, const Point3D& desiredOmega, F64 timeStep, Point3D& A, Point3D& a, F32& slipAmount, bool& foundBestContact)
 {
-    F32 force = 0.0f;
+    F64 force = 0.0f;
     S32 bestContactIndex = mContacts.size();
     for (S32 i = 0; i < mContacts.size(); i++)
     {
         Contact* contact = &mContacts[i];
-        contact->normalForce = -mDot(contact->normal, A);
+        contact->normalForce = -(A.z * contact->normal.z + A.y * contact->normal.y + A.x * contact->normal.x); // -mDot(contact->normal, A);
 
         if (contact->normalForce > force)
         {
@@ -1514,18 +1530,22 @@ void Marble::applyContactForces(const Move* move, bool isCentered, Point3D& aCon
         mBestContact = mContacts[bestContactIndex];
         foundBestContact = true;
     }
-    else 
+    else
     {
         foundBestContact = false;
     }
 
     if (move->trigger[2] && bestContactIndex != mContacts.size())
     {
-        F64 friction = fmaxf(0, mDot((mVelocity - mBestContact.surfaceVelocity), mBestContact.normal));
+        Point3D relVel = mVelocity - mBestContact.surfaceVelocity;
+        F32 friction = relVel.y * mBestContact.normal.y + relVel.z * mBestContact.normal.z + relVel.x * mBestContact.normal.x; // fmaxf(0, mDot(relVel, mBestContact.normal));
+        if (friction < 0.0)
+            friction = 0.0;
 
-        if (mDataBlock->jumpImpulse > friction)
+        if ((F64)mDataBlock->jumpImpulse > friction)
         {
-            mVelocity += (mDataBlock->jumpImpulse - friction) * mBestContact.normal;
+            F64 impulse = mDataBlock->jumpImpulse - friction;
+            mVelocity = (impulse * mBestContact.normal) + mVelocity;
             mGroundTime = 0;
             if (mDataBlock->jumpSound)
                 alxPlay(mDataBlock->jumpSound, &mObjToWorld, NULL);
@@ -1536,7 +1556,7 @@ void Marble::applyContactForces(const Move* move, bool isCentered, Point3D& aCon
     {
         Contact& contact = mContacts[i];
 
-        F64 normalForce = -mDot(contact.normal, A);
+        F64 normalForce = -(contact.normal.z * A.z + contact.normal.y * A.y + contact.normal.x * A.x); // mDot(contact.normal, A);
 
         if (normalForce > 0.0 &&
             mDot(mVelocity - contact.surfaceVelocity, contact.normal) <= 0.0001)
@@ -1547,7 +1567,7 @@ void Marble::applyContactForces(const Move* move, bool isCentered, Point3D& aCon
 
     if (bestContactIndex != mContacts.size() && mMode != 1)
     {
-        Point3D vAtC = mVelocity + mCross(mOmega, -mBestContact.normal * mRadius) - mBestContact.surfaceVelocity;
+        Point3D vAtC = (mCross(mOmega, -mBestContact.normal * mRadius) + mVelocity) - mBestContact.surfaceVelocity;
         mBestContact.vAtCMag = vAtC.len();
 
         bool slipping = false;
@@ -1558,7 +1578,7 @@ void Marble::applyContactForces(const Move* move, bool isCentered, Point3D& aCon
         {
             slipping = true;
 
-            F32 friction = 0.0f;
+            F32 friction = 0.0;
             if (mMode != 2)
                 friction = mDataBlock->kineticFriction * mBestContact.friction;
 
@@ -1571,8 +1591,9 @@ void Marble::applyContactForces(const Move* move, bool isCentered, Point3D& aCon
                 angAMagnitude *= mBestContact.vAtCMag / totalDeltaV;
                 AMagnitude *= mBestContact.vAtCMag / totalDeltaV;
             }
+            F64 oneOverVAtCMag = 1.0 / mBestContact.vAtCMag;
 
-            Point3D vAtCDir = vAtC / mBestContact.vAtCMag;
+            Point3D vAtCDir = vAtC * oneOverVAtCMag;
 
             aFriction = mCross(-mBestContact.normal, -vAtCDir) * angAMagnitude;
             AFriction = -AMagnitude * vAtCDir;
@@ -1583,11 +1604,12 @@ void Marble::applyContactForces(const Move* move, bool isCentered, Point3D& aCon
         if (!slipping)
         {
             Point3D R = -gGlobalGravityDir * mRadius;
-            Point3D aadd = mCross(R, A) / R.lenSquared();
+            F64 RMag = 1.0 / (R.z * R.z + R.y * R.y + R.x * R.x);
+            Point3D aadd = mCross(R, A) * RMag;
 
             if (isCentered)
             {
-                Point3D nextOmega = mOmega + a * timeStep;
+                Point3D nextOmega = a * timeStep + mOmega;
                 aControl = desiredOmega - nextOmega;
 
                 F64 aScalar = aControl.len();
@@ -1596,30 +1618,30 @@ void Marble::applyContactForces(const Move* move, bool isCentered, Point3D& aCon
             }
 
             Point3D Aadd = -mCross(aControl, -mBestContact.normal * mRadius);
-            F64 aAtCMag = (mCross(aadd, -mBestContact.normal * mRadius) + Aadd).len();
+            F64 aAtCMag = (Aadd + mCross(aadd, -mBestContact.normal * mRadius)).len();
 
-            F64 friction2 = 0.0;
+            F32 friction2 = 0.0;
             if (mMode != 2)
                 friction2 = mDataBlock->staticFriction * mBestContact.friction;
 
-            if (friction2 * mBestContact.normalForce < aAtCMag)
+            if (friction2 * mBestContact.normalForce < (F32)aAtCMag)
             {
                 friction2 = 0.0;
                 if (mMode != 2)
                     friction2 = mDataBlock->kineticFriction * mBestContact.friction;
 
-                Aadd *= friction2 * mBestContact.normalForce / aAtCMag;
+                Aadd *= friction2 * mBestContact.normalForce / (F32)aAtCMag;
             }
 
-            A += Aadd;
-            a += aadd;
+            A = Aadd + A;
+            a = aadd + a;
         }
 
         A += AFriction;
         a += aFriction;
     }
 
-    a += aControl;
+    a.set(aControl.x + a.x, a.y + aControl.y, aControl.z + a.z); // Wtf
 }
 
 void Marble::getMarbleAxis(Point3D& sideDir, Point3D& motionDir, Point3D& upDir)
@@ -1634,22 +1656,22 @@ void Marble::getMarbleAxis(Point3D& sideDir, Point3D& motionDir, Point3D& upDir)
 
 bool Marble::computeMoveForces(Point3D& aControl, Point3D& desiredOmega, const Move* move)
 {
-    aControl.set(0, 0, 0);
-    desiredOmega.set(0, 0, 0);
-
-    Point3F invGrav = -gGlobalGravityDir;
-
-    Point3D r = invGrav * mRadius;
-
-    Point3D rollVelocity;
-    mCross(mOmega, r, rollVelocity);
-
     Point3D sideDir;
     Point3D motionDir;
     Point3D upDir;
     getMarbleAxis(sideDir, motionDir, upDir);
 
-    Point2F currentVelocity(mDot(sideDir, rollVelocity), mDot(motionDir, rollVelocity));
+    aControl.set(0, 0, 0);
+    desiredOmega.set(0, 0, 0);
+
+    Point3D r = mGravityUp * mRadius;
+
+    Point3D rollVelocity;
+    mCross(mOmega, r, rollVelocity);
+
+    Point2F currentVelocity(
+        sideDir.z * rollVelocity.z + sideDir.y * rollVelocity.y + sideDir.x * rollVelocity.x,
+        motionDir.x * rollVelocity.x + motionDir.z * rollVelocity.z + motionDir.y * rollVelocity.y);
 
     Point2F mv(move->x, move->y);
 
@@ -1657,16 +1679,16 @@ bool Marble::computeMoveForces(Point3D& aControl, Point3D& desiredOmega, const M
 
     if (desiredVelocity.x != 0.0f || desiredVelocity.y != 0.0f)
     {
-        if (currentVelocity.y > desiredVelocity.y && desiredVelocity.y > 0) {
+        if (currentVelocity.y > (F64)desiredVelocity.y && desiredVelocity.y > 0) {
             desiredVelocity.y = currentVelocity.y;
         }
-        else if (currentVelocity.y < desiredVelocity.y && desiredVelocity.y < 0) {
+        else if (currentVelocity.y < (F64)desiredVelocity.y && desiredVelocity.y < 0) {
             desiredVelocity.y = currentVelocity.y;
         }
-        if (currentVelocity.x > desiredVelocity.x && desiredVelocity.x > 0) {
+        if (currentVelocity.x > (F64)desiredVelocity.x && desiredVelocity.x > 0) {
             desiredVelocity.x = currentVelocity.x;
         }
-        else if (currentVelocity.x < desiredVelocity.x && desiredVelocity.x < 0) {
+        else if (currentVelocity.x < (F64)desiredVelocity.x && desiredVelocity.x < 0) {
             desiredVelocity.x = currentVelocity.x;
         }
 
@@ -1674,12 +1696,15 @@ bool Marble::computeMoveForces(Point3D& aControl, Point3D& desiredOmega, const M
 
         Point3D newSideDir;
         mCross(r, newMotionDir, newSideDir);
+        F64 rSq = r.z * r.z + r.y * r.y + r.x * r.x;
 
-        desiredOmega = newSideDir * (1.0f / r.lenSquared());
+        desiredOmega = newSideDir * (1.0 / rSq);
         aControl = desiredOmega - mOmega;
 
-        if (mDataBlock->angularAcceleration < aControl.len())
-            aControl *= mDataBlock->angularAcceleration / aControl.len();
+        F64 aControlLen = aControl.len();
+
+        if (mDataBlock->angularAcceleration < aControlLen)
+            aControl *= mDataBlock->angularAcceleration / aControlLen;
 
         return false;
     }
@@ -1703,7 +1728,7 @@ void Marble::velocityCancel(bool surfaceSlide, bool noBounce, bool& bouncedYet, 
             Contact* contact = &mContacts[i];
 
             Point3D sVel = mVelocity - contact->surfaceVelocity;
-            F64 surfaceDot = mDot(contact->normal, sVel);
+            F64 surfaceDot = (sVel.z * contact->normal.z + sVel.y * contact->normal.y + sVel.x * contact->normal.x);  // mDot(contact->normal, sVel);
 
             if ((!looped && surfaceDot < 0.0) || surfaceDot < -0.001)
             {
@@ -1745,29 +1770,30 @@ void Marble::velocityCancel(bool surfaceSlide, bool noBounce, bool& bouncedYet, 
                             bounceRestitution = mDataBlock->bounceRestitution;
                         F64 restitution = contact->restitution * bounceRestitution;
                         Point3D velocityAdd = -(1.0 + restitution) * surfaceVel;
-                        Point3D vAtC = sVel + mCross(mOmega, -contact->normal * mRadius);
-                        F64 normalVel = -mDot(contact->normal, sVel);
+                        Point3D vAtC = mCross(mOmega, -contact->normal * mRadius) + sVel;
+                        F64 normalVel = -(sVel.z * contact->normal.z + sVel.y * contact->normal.y + sVel.x * contact->normal.x); // mDot(contact->normal, sVel);
 
-                        bounceEmitter(sVel.len() * restitution, contact->normal);
+                        bounceEmitter(mSqrtD(sVel.x * sVel.x + sVel.z * sVel.z + sVel.y * sVel.y) * restitution, contact->normal);
 
-                        vAtC -= contact->normal * mDot(contact->normal, sVel);
+                        vAtC -= (sVel.z * contact->normal.z + sVel.y * contact->normal.y + sVel.x * contact->normal.x) * contact->normal; // mDot(contact->normal, sVel);
 
-                        F64 vAtCMag = vAtC.len();
+                        F64 vAtCMag = mSqrtD(vAtC.x * vAtC.x + vAtC.z * vAtC.z + vAtC.y * vAtC.y);// vAtC.len();
                         if (vAtCMag != 0.0) {
-                            F64 friction = mDataBlock->bounceKineticFriction * contact->friction;
+                            F32 friction = mDataBlock->bounceKineticFriction * contact->friction;
 
                             F64 angVMagnitude = friction * 5.0 * normalVel / (mRadius + mRadius);
-                            if (vAtCMag / mRadius < angVMagnitude)
-                                angVMagnitude = vAtCMag / mRadius;
+                            F64 vAtCMag2 = vAtCMag / mRadius;
+                            if (vAtCMag2 < angVMagnitude)
+                                angVMagnitude = vAtCMag2;
 
-                            Point3D vAtCDir = vAtC / vAtCMag;
+                            Point3D vAtCDir = vAtC * (1.0 / vAtCMag);
 
                             Point3D deltaOmega = mCross(-contact->normal, -vAtCDir) * angVMagnitude;
-                            mOmega += deltaOmega;
+                            mOmega = deltaOmega + mOmega;
 
                             mVelocity -= mCross(-deltaOmega, -contact->normal * mRadius);
                         }
-                        mVelocity += velocityAdd;
+                        mVelocity = velocityAdd + mVelocity;
                     }
 
                 }
@@ -1809,7 +1835,7 @@ Point3D Marble::getExternalForces(const Move* move, F64 timeStep)
         gravity *= 0.25;
     Point3D ret = gGlobalGravityDir * gravity;
 
-    Box3F marbleBox(mPosition - Point3F(mDataBlock->maxForceRadius, mDataBlock->maxForceRadius, mDataBlock->maxForceRadius), 
+    Box3F marbleBox(mPosition - Point3F(mDataBlock->maxForceRadius, mDataBlock->maxForceRadius, mDataBlock->maxForceRadius),
         mPosition + Point3F(mDataBlock->maxForceRadius, mDataBlock->maxForceRadius, mDataBlock->maxForceRadius));
 
     SimpleQueryList sql;
@@ -1850,8 +1876,8 @@ Point3D Marble::getExternalForces(const Move* move, F64 timeStep)
 
             F32 contactForceOverMass = contactForce / mMass;
 
-            F32 thing = mDot((Point3F)mVelocity, contactNormal);
-            if (contactForceOverMass > thing)
+            F32 thing = contactNormal.z * mVelocity.z + contactNormal.y * mVelocity.y + contactNormal.x * mVelocity.x; // mDot((Point3F)mVelocity, contactNormal);
+            if ((F64)contactForceOverMass > thing)
             {
                 if (thing > 0.0f)
                     contactForceOverMass -= thing;
@@ -1868,14 +1894,14 @@ Point3D Marble::getExternalForces(const Move* move, F64 timeStep)
         Point3D upDir;
         getMarbleAxis(sideDir, motionDir, upDir);
 
-        Point3F movement = sideDir * move->x + motionDir * move->y;
+        Point3D movement = sideDir * move->x + motionDir * move->y;
 
-        float airAcceleration;
+        F32 airAcceleration;
         if (mPowerUpState[5].active)
             airAcceleration = mDataBlock->airAcceleration + mDataBlock->airAcceleration;
         else
             airAcceleration = mDataBlock->airAcceleration;
-        
+
         ret += movement * airAcceleration;
     }
 
@@ -1928,7 +1954,7 @@ void Marble::advancePhysics(const Move* move, U32 timeDelta)
         for (auto pi = PathedInterior::getClientPathedInteriors(); pi; pi = pi->getNext())
             pi->computeNextPathStep(timeStepInt);
 
-        double timeStep = (double)((long double)timeStepInt) / 1000.0;
+        double timeStep = (double)((unsigned int)timeStepInt) / 1000.0;
         
         while (timeStep != 0.0)
         {
@@ -1947,8 +1973,8 @@ void Marble::advancePhysics(const Move* move, U32 timeDelta)
             bool foundBestContact = false;
             applyContactForces(move, isCentered, aControl, desiredOmega, timeStep, A, a, slipAmount, foundBestContact);
 
-            mVelocity += A * timeStep;
-            mOmega += a * timeStep;
+            mVelocity = A * timeStep + mVelocity;
+            mOmega = a * timeStep + mOmega;
 
             mMoveTime = timeStep;
             if (mMode == 2)
